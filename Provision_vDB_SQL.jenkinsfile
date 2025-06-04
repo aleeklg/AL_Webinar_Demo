@@ -25,7 +25,7 @@ pipeline {
            input message: 'Proceed with BOOKMARK and MASKING?', ok: 'Yes, proceed'
          }
       }
-      stage('Bookmark Pre-Masking State') {
+      stage('Pre-Masking Bookmark') {
          agent { label 'devops' }
          steps {
             sh "/home/delphix/dct-toolkit create_bookmark vdb_ids='ALSQL' name='PreMask Bookmark'"
@@ -37,7 +37,7 @@ pipeline {
             sh "/home/delphix/dct-toolkit execute_masking_job engine_id=CCE1 masking_job_id='ALSQL'"
          }
       }
-      stage('Proceed with REWIND to Pre-Mask Bookmark?') {
+      stage('REWIND to Pre-Mask Bookmark?') {
          steps {
            input message: 'Proceed with REWIND?', ok: 'Yes, proceed'
          }
@@ -48,7 +48,7 @@ pipeline {
             sh "/home/delphix/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALSQL' bookmark_id='PreMask Bookmark'"
          }
       }
-      stage('Proceed to DELETE vDB (or 5 mins Timeout)') {
+      stage('DELETE vDB? (5 mins Timeout)') {
         steps {
           script {
             try {
