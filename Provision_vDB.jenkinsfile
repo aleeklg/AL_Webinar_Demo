@@ -30,7 +30,7 @@ pipeline {
           script {
             try {
               timeout(time: 5, unit: 'MINUTES') {
-                input message: 'Proceed with masking?', ok: 'Yes, proceed'
+                input message: 'Proceed to DELETE vDB?', ok: 'Yes, proceed'
               }
               echo "✅ Approved manually. Continuing..."
             } catch (err) {
@@ -39,5 +39,12 @@ pipeline {
           }
         }
       }
+      stage('Delete vDB') {
+         agent { label 'devops' }
+         steps {
+            sh "/home/delphix/dct-toolkit delete_vdb vdb_id='SuiteCRM_ALEE'"
+         }
+      }
+
    }
 }
