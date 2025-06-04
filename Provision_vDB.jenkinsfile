@@ -2,6 +2,7 @@
 // Pipeline using DCT to
 //   provisiom vDB
 //   pause
+//   bookmark pre-masking
 //   mask vDB
 //   pause
 //   delete vDB
@@ -22,6 +23,12 @@ pipeline {
       stage('Proceed with MASKING?') {
          steps {
            input message: 'Proceed with masking?', ok: 'Yes, run masking'
+         }
+      }
+      stage('Bookmark Pre-Masking State') {
+         agent { label 'devops' }
+         steps {
+            sh "/home/delphix/dct-toolkit create_bookmark vdb_id='ALSQL' name='PreMask Bookmark'"
          }
       }
       stage('Run Masking Job') {
