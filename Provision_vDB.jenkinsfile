@@ -14,6 +14,11 @@ pipeline {
             sh "/home/delphix/dct-toolkit provision_vdb_by_snapshot mssql source_data_id='Suitecrm_master' name='Suitecrm_ALEE' database_name='Suitecrm_ALEE' environment_id='Sqlserver_Target' environment_user_id='delphix_os' repository_id='MSSQLSERVER' target_group_id='AL Demo Group'"
          }
       }
+      stage('Pause for Approval') {
+         steps {
+         input message: 'Proceed with masking?', ok: 'Yes, run masking'
+         }
+      }
       stage('Run Masking Job') {
          agent { label 'devops' }
          steps {
