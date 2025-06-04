@@ -45,7 +45,7 @@ pipeline {
       stage('Rewind to Pre-Mask Bookmark') {
          agent { label 'devops' }
          steps {
-            sh "/home/delphix/dct-toolkit rewind_vdb_to_bookmark vdb_id='ALSQL' bookmark_name='PreMask Bookmark'"
+            sh "/home/delphix/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALSQL' bookmark_name='PreMask Bookmark'"
          }
       }
       stage('Proceed to DELETE vDB (or 5 mins Timeout)') {
