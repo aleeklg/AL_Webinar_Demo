@@ -1,17 +1,22 @@
 //
-// Pipeline to create Sqlserver VDB - DCT version
+// Pipeline using DCT to
+//   provisiom vDB
+//   pause
+//   mask vDB
+//   pause
+//   delete vDB
 //
-// Demo:  Standard Demo
+// Demo Env:  Standard Demo
 //
 // 2025 (c) Delphix - Andrew Lee (andrew.lee@perforce.com)
 //
 pipeline {
    agent { label 'devops' }
    stages {
-      stage('Provision vDB') {
+      stage('Provision ALSQL vDB') {
          agent { label 'devops' }
          steps {
-            sh "/home/delphix/dct-toolkit provision_vdb_by_snapshot mssql source_data_id='Suitecrm_master' name='Suitecrm_ALEE' database_name='Suitecrm_ALEE' environment_id='Sqlserver_Target' environment_user_id='delphix_os' repository_id='MSSQLSERVER' target_group_id='AL Demo Group'"
+            sh "/home/delphix/dct-toolkit provision_vdb_by_snapshot mssql source_data_id='Suitecrm_master' name='ALSQL' database_name='ALSQL' environment_id='Sqlserver_Target' environment_user_id='delphix_os' repository_id='MSSQLSERVER' target_group_id='AL Demo Group'"
          }
       }
       stage('Proceed with MASKING?') {
@@ -22,7 +27,7 @@ pipeline {
       stage('Run Masking Job') {
          agent { label 'devops' }
          steps {
-            sh "/home/delphix/dct-toolkit execute_masking_job engine_id=CCE1 masking_job_id='SuiteCRM_ALEE'"
+            sh "/home/delphix/dct-toolkit execute_masking_job engine_id=CCE1 masking_job_id='ALSQL'"
          }
       }
       stage('Proceed to DELETE vDB (or 5 mins Timeout)') {
@@ -42,9 +47,8 @@ pipeline {
       stage('Delete vDB') {
          agent { label 'devops' }
          steps {
-            sh "/home/delphix/dct-toolkit delete_vdb vdb_id='SuiteCRM_ALEE'"
+            sh "/home/delphix/dct-toolkit delete_vdb vdb_id='ALSQL'"
          }
       }
-
    }
 }
