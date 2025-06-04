@@ -17,9 +17,7 @@ pipeline {
       stage('Run Masking Job') {
          agent { label 'devops' }
          steps {
-            sh "/home/delphix/mask_read_mask.sh"
             sh "/home/delphix/dct-toolkit execute_masking_job engine_id=CCE1 masking_job_id='SuiteCRM_ALEE'"
-            sh "/home/delphix/mask_read_mask.sh"
          }
       }
    }
