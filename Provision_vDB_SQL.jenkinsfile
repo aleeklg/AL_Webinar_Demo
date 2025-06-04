@@ -1,5 +1,5 @@
 //
-// Pipeline using DCT to
+// Jenkins Pipeline for MSSQL using DCT to
 //   provisiom vDB
 //   pause
 //   bookmark pre-masking
