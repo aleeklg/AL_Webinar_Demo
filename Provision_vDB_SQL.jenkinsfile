@@ -14,7 +14,7 @@
 pipeline {
    agent { label 'devops' }
    stages {
-      stage('Provision 4 vDBs') {
+      stage('Provision 2 vDBs') {
       parallel {
       stage('Provision ALSQL') {
          agent { label 'devops' }
@@ -84,7 +84,7 @@ pipeline {
           }
         }
       }
-      stage('Delete 4 vDBs') {
+      stage('Delete 2 vDBs') {
       parallel {
       stage('Delete ALSQL') {
          agent { label 'devops' }
