@@ -86,25 +86,25 @@ pipeline {
       }
       stage('Delete 4 vDBs') {
       parallel {
-      stage('Delete vDB') {
+      stage('Delete ALSQL') {
          agent { label 'devops' }
          steps {
             sh "/home/delphix/dct-toolkit delete_vdb vdb_id='ALSQL'"
          }
       }
-      stage('Delete vDB') {
+      stage('Delete ALSQL1') {
          agent { label 'devops' }
          steps {
             sh "/home/delphix/dct-toolkit delete_vdb vdb_id='ALSQL1'"
          }
       }
-      stage('Delete vDB') {
+      stage('Delete ALSQL2') {
          agent { label 'devops' }
          steps {
             sh "/home/delphix/dct-toolkit delete_vdb vdb_id='ALSQL2'"
          }
       }
-      stage('Delete vDB') {
+      stage('Delete ALSQL3') {
          agent { label 'devops' }
          steps {
             sh "/home/delphix/dct-toolkit delete_vdb vdb_id='ALSQL3'"
