@@ -42,7 +42,7 @@ pipeline {
 //      }
       }
       }
-      stage('Capture BEFORE Mask') {
+      stage('PAUSE: Capture BEFORE Mask') {
          steps {
            input message: 'Proceed with BOOKMARK & MASK?', ok: 'Yes, proceed'
          }
@@ -59,7 +59,7 @@ pipeline {
             sh "/home/delphix/dct-toolkit execute_masking_job engine_id=CCE1 masking_job_id='ALSQL'"
          }
       }
-      stage('Capture AFTER Mask') {
+      stage('PAUSE: Capture AFTER Mask') {
          steps {
            input message: 'Proceed with REWIND to Pre-Mask Bookmark?', ok: 'Yes, proceed'
          }
@@ -70,7 +70,7 @@ pipeline {
             sh "/home/delphix/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALSQL' bookmark_id='PreMask Bookmark'"
          }
       }
-      stage('DELETE vDB? (5 mins Timeout)') {
+      stage('PAUSE: DELETE vDB?') {
         steps {
           script {
             try {
