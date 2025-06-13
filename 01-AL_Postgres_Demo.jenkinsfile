@@ -21,13 +21,13 @@ pipeline {
       stage('Provision ALPOST1') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit provision_vdb_by_snapshot postgres source_data_id='Postgres_crm' name='ALPOST1' postgres_port='8015' environment_id='Postgres Staging' environment_user_id='postgres' --auto_select_repository target_group_id='AL Demo Group' mount_point='/mnt/provision/postgres_ALPOST1' post_script_commands='echo "host all all 0.0.0.0/0 trust" >> \$DELPHIX_MOUNT_PATH/pg_hba.conf && pg_ctl -D \$DELPHIX_MOUNT_PATH reload'"
+            sh "/root/dct-toolkit provision_vdb_by_snapshot postgres source_data_id='Postgres_crm' name='ALPOST1' postgres_port='8015' environment_id='Postgres Staging' environment_user_id='postgres' --auto_select_repository target_group_id='AL Demo Group' mount_point='/mnt/provision/postgres_ALPOST1' post_script='/var/lib/pgsql/modify_pg_hba.sh'"
          }
       }
       stage('Provision ALPOST2') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit provision_vdb_by_snapshot postgres source_data_id='Postgres_crm' name='ALPOST2' postgres_port='8016' environment_id='Postgres Staging' environment_user_id='postgres' --auto_select_repository target_group_id='AL Demo Group' mount_point='/mnt/provision/postgres_ALPOST2' post_script_commands='echo "host all all 0.0.0.0/0 trust" >> \$DELPHIX_MOUNT_PATH/pg_hba.conf && pg_ctl -D \$DELPHIX_MOUNT_PATH reload'"
+            sh "/root/dct-toolkit provision_vdb_by_snapshot postgres source_data_id='Postgres_crm' name='ALPOST2' postgres_port='8016' environment_id='Postgres Staging' environment_user_id='postgres' --auto_select_repository target_group_id='AL Demo Group' mount_point='/mnt/provision/postgres_ALPOST2' post_script='/var/lib/pgsql/modify_pg_hba.sh'"
          }
       }
       }
