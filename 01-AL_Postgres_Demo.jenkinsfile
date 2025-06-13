@@ -1,0 +1,94 @@
+//
+// Jenkins Pipeline for Postgres using DCT to
+//   provisiom vDB
+//   pause
+//   bookmark pre-masking
+//   mask vDB
+//   pause
+//   delete vDB
+//
+// Demo Env:  AL Postgres Demo
+//
+// 2025 (c) Delphix - Andrew Lee (andrew.lee@perforce.com)
+//
+
+pipeline {
+
+   agent { label 'devops' }
+   stages {
+      stage('Provision 2 vDBs') {
+      parallel {
+      stage('Provision ALPOST1') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit provision_vdb_by_snapshot postgres source_data_id='Postgres_master' name='ALPOST1' postgres_port='5451' environment_id='Postgres Staging' environment_user_id='postgres' --auto_select_repository target_group_id='AL Demo Group' mount_point='/mnt/provision/postgres_ALPOST1'"
+         }
+      }
+      stage('Provision ALSQL1') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit provision_vdb_by_snapshot postgres source_data_id='Postgres_master' name='ALPOST2' postgres_port='5452' environment_id='Postgres Staging' environment_user_id='postgres' --auto_select_repository target_group_id='AL Demo Group' mount_point='/mnt/provision/postgres_ALPOST2'"
+         }
+      }
+      }
+      }
+      stage('PAUSE: Capture BEFORE Mask') {
+         steps {
+           input message: 'Proceed with BOOKMARK & MASK?', ok: 'Yes, proceed'
+         }
+      }
+      stage('Pre-Masking Bookmark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreMask Bookmark'"
+         }
+      }
+      stage('Run Masking Job') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ALPOST1'"
+         }
+      }
+      stage('PAUSE: Capture AFTER Mask') {
+         steps {
+           input message: 'Proceed with REWIND to Pre-Mask Bookmark?', ok: 'Yes, proceed'
+         }
+      }
+      stage('Rewind to Pre-Mask Bookmark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST1' bookmark_id='PreMask Bookmark'"
+         }
+      }
+      stage('PAUSE: DELETE vDB?') {
+        steps {
+          script {
+            try {
+              timeout(time: 5, unit: 'MINUTES') {
+                input message: 'Proceed to DELETE vDB?', ok: 'Yes, proceed'
+              }
+              echo "Approved manually. Continuing..."
+            } catch (err) {
+              echo "No response within 5 minutes. Proceeding automatically."
+            }
+          }
+        }
+      }
+      stage('Delete 2 vDBs') {
+      parallel {
+      stage('Delete ALPOST1') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST1'"
+         }
+      }
+      stage('Delete ALPOST2') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST2'"
+         }
+      }
+      }
+      }
+   }
+}
