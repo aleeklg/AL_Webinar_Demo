@@ -29,7 +29,7 @@ pipeline {
                   environment_user_id="postgres" --auto_select_repository \
                   target_group_id="AL Demo Group" \
                   mount_point="/mnt/provision/postgres_ALPOST1" \
-                  configure_clone="echo 'host  all   all   0.0.0.0/0    trust'  >> /mnt/provision/postgres_ALPOST1/data/pg_hba.conf && /usr/bin/pg_ctl reload -D /mnt/provision/postgres_ALPOST1/data"
+                  configure_clone_commands="echo 'host  all   all   0.0.0.0/0    trust'  >> /mnt/provision/postgres_ALPOST1/data/pg_hba.conf && /usr/bin/pg_ctl reload -D /mnt/provision/postgres_ALPOST1/data"
             '''
          }
       }
