@@ -29,21 +29,7 @@ pipeline {
                   environment_user_id='postgres' --auto_select_repository \
                   target_group_id='AL Demo Group' \
                   mount_point='/mnt/provision/postgres_ALPOST1' \
-                  configure_clone={
-        name            = "Mask and Open Network Access"
-        command         = <<-EOT
-                            # Update pg_hba.conf to allow all IPv4 traffic 
-                            echo "host  all   all   0.0.0.0/0    trust"  >> $DLPX_DATA_DIRECTORY/data/pg_hba.conf
-                            # reload postgress to make above take effect
-                            /usr/bin/pg_ctl reload -D $DLPX_DATA_DIRECTORY/data
-
-                            # Masking Job
-                            ./MaskJobExecution_API.bash -h 10.160.1.160 -p 1 -j  > crmMask.log
-                            # Masking Job - will fail 
-                            #./MaskJobExecution_API.bash -h 192.168.1.1 -p 1 -j  > crmMask.log
-                            EOT
-        shell           = "bash"
-    }"
+                  configure_clone='echo "host  all   all   0.0.0.0/0    trust"  >> $DLPX_DATA_DIRECTORY/data/pg_hba.conf && /usr/bin/pg_ctl reload -D $DLPX_DATA_DIRECTORY/data'"
          }
       }
       stage('Provision ALPOST2') {
