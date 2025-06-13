@@ -29,7 +29,7 @@ pipeline {
                   environment_user_id='postgres' --auto_select_repository \
                   target_group_id='AL Demo Group' \
                   mount_point='/mnt/provision/postgres_ALPOST1' \
-                  configure_clone='./var/lib/pgsql/modify_pg_hba.sh'
+                  configure_clone='/var/lib/pgsql/modify_pg_hba.sh'
             """
          }
       }
