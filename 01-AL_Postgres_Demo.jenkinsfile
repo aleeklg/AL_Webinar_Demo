@@ -29,7 +29,7 @@ pipeline {
                   environment_user_id='postgres' --auto_select_repository \
                   target_group_id='AL Demo Group' \
                   mount_point='/mnt/provision/postgres_ALPOST1' \
-                  configure_clone {
+                  configure_clone={
         name            = "Mask and Open Network Access"
         command         = <<-EOT
                             # Update pg_hba.conf to allow all IPv4 traffic 
