@@ -16,6 +16,7 @@ pipeline {
 
    agent { label 'devops' }
    stages {
+
       stage('Provision 2 vDBs') {
       parallel {
       stage('Provision ALPOST1') {
@@ -36,8 +37,8 @@ pipeline {
                          "element_id" : "0",
                          "has_credentials" : false
                     } ]'
-            """
-         }
+               """
+            }
       }
       stage('Provision ALPOST2') {
          agent { label 'devops' }
@@ -57,46 +58,73 @@ pipeline {
                          "element_id" : "0",
                          "has_credentials" : false
                     } ]'
-            """
+               """
+            }
          }
       }
       }
-      }
+      
       stage('PAUSE: Capture BEFORE Mask') {
          steps {
            input message: 'Proceed with BOOKMARK & MASK?', ok: 'Yes, proceed'
          }
       }
+      
       stage('Pre-Masking Bookmark') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreMask Bookmark'"
          }
       }
+      
       stage('Run Masking Job') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ALPOST1 Masking'"
          }
       }
-      stage('Post-Masking Bookmark') {
-         agent { label 'devops' }
-         steps {
-            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PostMask Bookmark'"
-         }
-      }
+      
       stage('PAUSE: Capture AFTER Mask') {
          steps {
            input message: 'Proceed with REWIND to Pre-Mask Bookmark?', ok: 'Yes, proceed'
          }
       }
-      stage('Rewind to Pre-Mask Bookmark') {
+
+      stage('PreTest Bookmark') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST1' bookmark_id='PreMask Bookmark'"
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreTest Bookmark'"
          }
       }
-      stage('PAUSE: DELETE vDB?') {
+
+      stage('Start Testing') {
+         steps {
+            sh '''
+               export PGPASSWORD=Delphix_123!
+               psql -h 10.160.1.74 -p 8015 -U postgres -d crm -c "UPDATE contacts SET last_name = 'LEE';"
+            '''
+         }
+      }
+      stage('Error Bookmark and Share') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' shared=true"
+         }
+      }
+
+     stage('PAUSE: Capture Test Error') {
+         steps {
+           input message: 'Proceed with REWIND to Pre-Mask Bookmark?', ok: 'Yes, proceed'
+         }
+      }
+
+      stage('Rewind to PreTest Bookmark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST1' bookmark_id='PreTest Bookmark'"
+         }
+      }
+      stage('PAUSE: REVERT Env?') {
         steps {
           script {
             try {
