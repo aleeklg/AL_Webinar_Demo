@@ -29,7 +29,7 @@ pipeline {
                   environment_user_id='postgres' --auto_select_repository \
                   target_group_id='AL Demo Group' \
                   mount_point='/mnt/provision/ALPOST1_8015'
-                  configure_clone='{"name":"Open Network Access","command":"echo 'host  all   all   0.0.0.0/0    trust'  >> \$DELPHIX_MOUNT_PATH/data/pg_hba.conf && /usr/bin/pg_ctl reload -D \$DELPHIX_MOUNT_PATH/data","shell":"bash"}
+                  configure_clone='{"name":"Open Network Access","command":"echo 'host  all   all   0.0.0.0/0    trust'  >> \$DELPHIX_MOUNT_PATH/data/pg_hba.conf && /usr/bin/pg_ctl reload -D \$DELPHIX_MOUNT_PATH/data","shell":"bash"}'
             """
          }
       }
