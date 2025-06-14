@@ -28,7 +28,7 @@ pipeline {
                   postgres_port='8015' \
                   environment_id='Postgres Staging' \
                   environment_user_id='postgres' --auto_select_repository \
-                  target_group_id='AL Demo Group' \
+                  target_group_id='QA' \
                   mount_point='/mnt/provision/ALPOST1_8015' \
                   configure_clone='[ {
                          "name" : "Open Network Access",
@@ -49,7 +49,7 @@ pipeline {
                   postgres_port='8016' \
                   environment_id='Postgres Staging' \
                   environment_user_id='postgres' --auto_select_repository \
-                  target_group_id='AL Demo Group' \
+                  target_group_id='DEV' \
                   mount_point='/mnt/provision/ALPOST2_8016' \
                   configure_clone='[ {
                          "name" : "Open Network Access",
@@ -86,7 +86,7 @@ pipeline {
       
       stage('PAUSE: Capture AFTER Mask') {
          steps {
-           input message: 'Proceed with REWIND to Pre-Mask Bookmark?', ok: 'Yes, proceed'
+           input message: 'Proceed with Bookmark and Run Test?', ok: 'Yes, proceed'
          }
       }
 
@@ -105,7 +105,7 @@ pipeline {
             '''
          }
       }
-      stage('Error Bookmark and Share') {
+      stage('Error Bookmark and Make Bookmark Public') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' bookmark_type=PUBLIC"
@@ -114,7 +114,7 @@ pipeline {
 
      stage('PAUSE: Capture Test Error') {
          steps {
-           input message: 'Proceed with REWIND to Pre-Mask Bookmark?', ok: 'Yes, proceed'
+           input message: 'Proceed with REWIND to PreTest Bookmark?', ok: 'Yes, proceed'
          }
       }
 
@@ -124,6 +124,15 @@ pipeline {
             sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST1' bookmark_id='PreTest Bookmark'"
          }
       }
+
+      stage('Send Error Condition to DEV') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST12 bookmark_id='Error Bookmark'"
+         }
+      }
+
+
       stage('PAUSE: REVERT Env?') {
         steps {
           script {
