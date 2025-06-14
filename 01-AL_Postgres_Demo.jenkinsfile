@@ -128,7 +128,7 @@ pipeline {
       stage('Send Error Condition to DEV') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST12' bookmark_id='Error Bookmark'"
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST2' bookmark_id='Error Bookmark'"
          }
       }
 

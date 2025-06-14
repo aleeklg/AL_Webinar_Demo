@@ -121,20 +121,22 @@ pipeline {
          }
       }
 
+      stage('Provision 2 vDBs') {
+      parallel {
       stage('Rewind to PreTest Bookmark') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST1' bookmark_id='PreTest Bookmark'"
          }
       }
-
       stage('Send Error Condition to DEV') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST12' bookmark_id='Error Bookmark'"
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST2' bookmark_id='Error Bookmark'"
          }
       }
-
+      }
+      }
 
       stage('PAUSE: REVERT Env?') {
         steps {
