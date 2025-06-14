@@ -1,0 +1,170 @@
+//
+// Jenkins Pipeline for Postgres using DCT to
+//   Provision vdb MASK
+//   Mask vDB
+//   Provision QA and DEV
+//   Bookmark pretest
+//   Run test
+//   Book mark error
+//   Rewind to pretest
+//   Share error to Dev
+//   Delete env
+//
+// Demo Env:  AL Postgres Demo
+//
+// 2025 (c) Delphix - Andrew Lee (andrew.lee@perforce.com)
+//
+
+pipeline {
+
+   agent { label 'devops' }
+   stages {
+
+      stage('Provision 2 vDBs') {
+      parallel {
+      stage('Provision ALPOST1') {
+         agent { label 'devops' }
+         steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='Postgres_crm' \
+                  name='ALPOST1' \
+                  postgres_port='8015' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='QA' \
+                  mount_point='/mnt/provision/ALPOST1_8015' \
+                  configure_clone='[ {
+                         "name" : "Open Network Access",
+                         "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                         "shell" : "bash",
+                         "element_id" : "0",
+                         "has_credentials" : false
+                    } ]'
+               """
+            }
+      }
+      stage('Provision ALPOST2') {
+         agent { label 'devops' }
+         steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='Postgres_crm' \
+                  name='ALPOST2' \
+                  postgres_port='8016' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='DEV' \
+                  mount_point='/mnt/provision/ALPOST2_8016' \
+                  configure_clone='[ {
+                         "name" : "Open Network Access",
+                         "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                         "shell" : "bash",
+                         "element_id" : "0",
+                         "has_credentials" : false
+                    } ]'
+               """
+            }
+         }
+      }
+      }
+      
+      stage('PAUSE: Capture BEFORE Mask') {
+         steps {
+           input message: 'Proceed with BOOKMARK & MASK?', ok: 'Yes, proceed'
+         }
+      }
+      
+      stage('Pre-Masking Bookmark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreMask Bookmark'"
+         }
+      }
+      
+      stage('Run Masking Job') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ALPOST1 Masking'"
+         }
+      }
+      
+      stage('PAUSE: Capture AFTER Mask') {
+         steps {
+           input message: 'Proceed with Bookmark and Run Test?', ok: 'Yes, proceed'
+         }
+      }
+
+      stage('PreTest Bookmark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreTest Bookmark'"
+         }
+      }
+
+      stage('Start Testing') {
+         steps {
+            sh '''
+               export PGPASSWORD=Delphix_123!
+               psql -h 10.160.1.74 -p 8015 -U postgres -d crm -c "UPDATE contacts SET last_name = 'LEE';"
+            '''
+         }
+      }
+      stage('Error Bookmark and Make Bookmark Public') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' bookmark_type=PUBLIC"
+         }
+      }
+
+     stage('PAUSE: Capture Test Error') {
+         steps {
+           input message: 'Proceed with REWIND to PreTest Bookmark?', ok: 'Yes, proceed'
+         }
+      }
+
+      stage('Rewind to PreTest Bookmark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST1' bookmark_id='PreTest Bookmark'"
+         }
+      }
+
+      stage('Send Error Condition to DEV') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST12' bookmark_id='Error Bookmark'"
+         }
+      }
+
+
+      stage('PAUSE: REVERT Env?') {
+        steps {
+          script {
+            try {
+              timeout(time: 5, unit: 'MINUTES') {
+                input message: 'Proceed to DELETE vDB?', ok: 'Yes, proceed'
+              }
+              echo "Approved manually. Continuing..."
+            } catch (err) {
+              echo "No response within 5 minutes. Proceeding automatically."
+            }
+          }
+        }
+      }
+      stage('Delete 2 vDBs') {
+      parallel {
+      stage('Delete ALPOST1') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST1'"
+         }
+      }
+      stage('Delete ALPOST2') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST2'"
+         }
+      }
+      }
+      }
+   }
+}
