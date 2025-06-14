@@ -108,7 +108,7 @@ pipeline {
       stage('Error Bookmark and Share') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' shared=true"
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' bookmark_type=PUBLIC"
          }
       }
 
