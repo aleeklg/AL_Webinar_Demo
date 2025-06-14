@@ -28,7 +28,7 @@ pipeline {
                   environment_id='Postgres Staging' \
                   environment_user_id='postgres' --auto_select_repository \
                   target_group_id='AL Demo Group' \
-                  mount_point='/mnt/provision/postgres_ALPOST1'
+                  mount_point='/mnt/provision/ALPOST1_8015'
 //                  configure_clone={/var/lib/pgsql/modify_pg_hba.sh}
             """
          }
@@ -43,7 +43,7 @@ pipeline {
 //                  environment_id='Postgres Staging' \
 //                  environment_user_id='postgres' --auto_select_repository \
 //                  target_group_id='AL Demo Group' \
-//                  mount_point='/mnt/provision/postgres_ALPOST2' \
+//                  mount_point='/mnt/provision/ALPOST2_8016' \
 //                  configure_clone='echo \"host  all   all   0.0.0.0/0    trust\"  >> /mnt/provision/postgres_ALPOST1/data/pg_hba.conf && /usr/bin/pg_ctl reload -D /mnt/provision/postgres_ALPOST1/data'"
 //         }
 //      }
