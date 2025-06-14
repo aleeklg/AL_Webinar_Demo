@@ -29,7 +29,7 @@ pipeline {
                   environment_user_id='postgres' --auto_select_repository \
                   target_group_id='AL Demo Group' \
                   mount_point='/mnt/provision/ALPOST1_8015'
-                  configure_clone='{"name":"Open Network Access","command":["./var/lib/pgsql/modify_pg_hba.sh"],"shell":"bash"}'
+                  configure_clone='{"name":"Open Network Access","command":['./var/lib/pgsql/modify_pg_hba.sh'],"shell":"bash"}'
             """
          }
       }
