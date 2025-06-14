@@ -31,7 +31,7 @@ pipeline {
                   mount_point='/mnt/provision/ALPOST1_8015' \
                   configure_clone='[ {
                          "name" : "Open Network Access",
-                         "command" : "whoami",
+                         "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
                          "shell" : "bash",
                          "element_id" : "0",
                          "has_credentials" : false
