@@ -70,8 +70,6 @@ pipeline {
          }
       }
 
-
-
 // Pause to capture Masked Data
 
       stage('PAUSE: Post-Masking') {
@@ -162,7 +160,7 @@ pipeline {
       stage('Error BMark and Make Public') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' bookmark_type=PUBLIC"
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST2' name='Error Bookmark' bookmark_type=PUBLIC"
          }
       }
 
