@@ -209,7 +209,7 @@ pipeline {
         }
       }
       
-      stage('Delete 3 vDBs') {
+      stage('Delete QA & Dev') {
       parallel {
       stage('Delete ALPOST2') {
          agent { label 'devops' }
@@ -224,6 +224,8 @@ pipeline {
          }
       }      
       }
+      }
+      stage('Delete MaskGC') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST1'"
