@@ -1,14 +1,14 @@
 //
 // Jenkins Pipeline for Postgres using DCT to
-//   Provision vdb MASK
-//   Mask vDB
-//   Provision QA and DEV
-//   Bookmark pretest
-//   Run test
-//   Book mark error
-//   Rewind to pretest
+//   Provision ALPOST1 to MaskGC
+//   Mask ALPOST1 vDB
+//   Provision masked vDB to QA and DEV
+//   Pre-Test BMark ALPOST2 (QA)
+//   Run Test and Error ALPOST2 (QA)
+//   BMark Error and make PUBLIC
+//   Rewind to Pre-Test
 //   Share error to Dev
-//   Delete env
+//   Delete Whole Env
 //
 // Demo Env:  AL Postgres Demo
 //
@@ -20,8 +20,8 @@ pipeline {
    agent { label 'devops' }
    stages {
 
-      stage('Provision 2 vDBs') {
-      parallel {
+// Provision vDB ALPOST1 to MaskGC
+
       stage('Provision ALPOST1') {
          agent { label 'devops' }
          steps {
@@ -31,7 +31,7 @@ pipeline {
                   postgres_port='8015' \
                   environment_id='Postgres Staging' \
                   environment_user_id='postgres' --auto_select_repository \
-                  target_group_id='QA' \
+                  target_group_id='MaskGC' \
                   mount_point='/mnt/provision/ALPOST1_8015' \
                   configure_clone='[ {
                          "name" : "Open Network Access",
@@ -43,17 +43,68 @@ pipeline {
                """
             }
       }
+
+// Pause to capture UnMasked Data
+
+      stage('PAUSE: Pre-Masking') {
+         steps {
+           input message: 'Proceed with MASKING?', ok: 'Yes, proceed'
+         }
+      }
+
+// Mask ALPOST1
+
+      stage('Mask ALPOST1') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ALPOST1 Masking'"
+         }
+      }
+
+// Pause to capture Masked Data
+
+      stage('PAUSE: Post-Masking') {
+         steps {
+           input message: 'Proceed with QA and DEV?', ok: 'Yes, proceed'
+         }
+      }
+
+// Provision cDB to QA and DEV
+
+      stage('Provision vDB to QA & DEV') {
+      parallel {
       stage('Provision ALPOST2') {
          agent { label 'devops' }
          steps {
             sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
-                  source_data_id='Postgres_crm' \
+                  source_data_id='ALPOST1' \
                   name='ALPOST2' \
                   postgres_port='8016' \
                   environment_id='Postgres Staging' \
                   environment_user_id='postgres' --auto_select_repository \
-                  target_group_id='DEV' \
+                  target_group_id='QA' \
                   mount_point='/mnt/provision/ALPOST2_8016' \
+                  configure_clone='[ {
+                         "name" : "Open Network Access",
+                         "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                         "shell" : "bash",
+                         "element_id" : "0",
+                         "has_credentials" : false
+                    } ]'
+               """
+            }
+      }
+      stage('Provision ALPOST3') {
+         agent { label 'devops' }
+         steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='ALPOST1' \
+                  name='ALPOST3' \
+                  postgres_port='8017' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='DEV' \
+                  mount_point='/mnt/provision/ALPOST3_8017' \
                   configure_clone='[ {
                          "name" : "Open Network Access",
                          "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
@@ -66,77 +117,72 @@ pipeline {
          }
       }
       }
-      
-      stage('PAUSE: Capture BEFORE Mask') {
+
+// Pause to Capture QA and DEV
+
+      stage('PAUSE: QA & DEV') {
          steps {
-           input message: 'Proceed with BOOKMARK & MASK?', ok: 'Yes, proceed'
-         }
-      }
-      
-      stage('Pre-Masking Bookmark') {
-         agent { label 'devops' }
-         steps {
-            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreMask Bookmark'"
-         }
-      }
-      
-      stage('Run Masking Job') {
-         agent { label 'devops' }
-         steps {
-            sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ALPOST1 Masking'"
-         }
-      }
-      
-      stage('PAUSE: Capture AFTER Mask') {
-         steps {
-           input message: 'Proceed with Bookmark and Run Test?', ok: 'Yes, proceed'
+           input message: 'Proceed with QA Testing?', ok: 'Yes, proceed'
          }
       }
 
-      stage('PreTest Bookmark') {
+// Bookmark ALPOST2 Pre-Test
+
+      stage('Pre-Test BMark') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreTest Bookmark'"
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST2' name='Pre-Test Bookmark'"
          }
-      }
+      }     
+
+// Start Testing and Destroy Data
 
       stage('Start Testing') {
          steps {
             sh '''
                export PGPASSWORD=Delphix_123!
-               psql -h 10.160.1.74 -p 8015 -U postgres -d crm -c "UPDATE contacts SET last_name = 'LEE';"
+               psql -h 10.160.1.74 -p 8016 -U postgres -d crm -c "UPDATE contacts SET last_name = 'LEE';"
             '''
          }
       }
-      stage('Error Bookmark and Make Bookmark Public') {
+
+// Bookmark Error and make PUBLIC
+
+      stage('Error BMark and Make Public') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' bookmark_type=PUBLIC"
          }
       }
 
-     stage('PAUSE: Capture Test Error') {
+// Pause to Capture ERROR
+
+      stage('PAUSE: ERROR') {
          steps {
-           input message: 'Proceed with REWIND to PreTest Bookmark?', ok: 'Yes, proceed'
+           input message: 'Proceed with Rewind & Refresh?', ok: 'Yes, proceed'
          }
       }
 
-      stage('Provision 2 vDBs') {
+// Rewind QA to Pre-Test and Refresh DEV to Bookmark ERROR
+
+      stage('QA:Rewind & DEV: ERROR') {
       parallel {
-      stage('Rewind to PreTest Bookmark') {
+      stage('Rewind to Pre-Test BMark') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST1' bookmark_id='PreTest Bookmark'"
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST2' bookmark_id='Pre-Test Bookmark'"
          }
       }
-      stage('Send Error Condition to DEV') {
+      stage('Send Error to DEV') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST2' bookmark_id='Error Bookmark'"
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='ALPOST3' bookmark_id='Error Bookmark'"
          }
       }
       }
       }
+
+// Pause: Delete whole Environment?
 
       stage('PAUSE: REVERT Env?') {
         steps {
@@ -170,3 +216,51 @@ pipeline {
       }
    }
 }
+
+
+
+
+
+
+
+      stage('PAUSE: Start Test') {
+         steps {
+           input message: 'Proceed with QA Testing?', ok: 'Yes, proceed'
+         }
+      }
+      
+     stage('PAUSE: Capture Test Error') {
+         steps {
+           input message: 'Proceed with REWIND to PreTest Bookmark?', ok: 'Yes, proceed'
+         }
+      }
+
+      stage('Pre-Masking Bookmark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreMask Bookmark'"
+         }
+      }
+            
+      stage('PAUSE: Capture AFTER Mask') {
+         steps {
+           input message: 'Proceed with Bookmark and Run Test?', ok: 'Yes, proceed'
+         }
+      }
+
+
+      stage('Error Bookmark and Make Bookmark Public') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' bookmark_type=PUBLIC"
+         }
+      }
+
+     stage('PAUSE: Capture Test Error') {
+         steps {
+           input message: 'Proceed with REWIND to PreTest Bookmark?', ok: 'Yes, proceed'
+         }
+      }
+
+
+
