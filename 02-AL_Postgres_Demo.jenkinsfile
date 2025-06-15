@@ -1,13 +1,13 @@
 //
 // Jenkins Pipeline for Postgres using DCT to
 //   Provision ALPOST1 to MaskGC
-//   Mask ALPOST1 vDB
+//   Mask ALPOST1
 //   Provision masked vDB to QA and DEV
 //   Pre-Test BMark ALPOST2 (QA)
 //   Run Test and Error ALPOST2 (QA)
 //   BMark Error and make PUBLIC
-//   Rewind to Pre-Test
-//   Share error to Dev
+//   QA Rewind to Pre-Test
+//   DEV Refresh to ERROR
 //   Delete Whole Env
 //
 // Demo Env:  AL Postgres Demo
@@ -34,12 +34,12 @@ pipeline {
                   target_group_id='MaskGC' \
                   mount_point='/mnt/provision/ALPOST1_8015' \
                   configure_clone='[ {
-                         "name" : "Open Network Access",
-                         "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
-                         "shell" : "bash",
-                         "element_id" : "0",
-                         "has_credentials" : false
-                    } ]'
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
                """
             }
       }
@@ -85,12 +85,12 @@ pipeline {
                   target_group_id='QA' \
                   mount_point='/mnt/provision/ALPOST2_8016' \
                   configure_clone='[ {
-                         "name" : "Open Network Access",
-                         "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
-                         "shell" : "bash",
-                         "element_id" : "0",
-                         "has_credentials" : false
-                    } ]'
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
                """
             }
       }
@@ -106,12 +106,12 @@ pipeline {
                   target_group_id='DEV' \
                   mount_point='/mnt/provision/ALPOST3_8017' \
                   configure_clone='[ {
-                         "name" : "Open Network Access",
-                         "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
-                         "shell" : "bash",
-                         "element_id" : "0",
-                         "has_credentials" : false
-                    } ]'
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
                """
             }
          }
@@ -216,51 +216,3 @@ pipeline {
       }
    }
 }
-
-
-
-
-
-
-
-      stage('PAUSE: Start Test') {
-         steps {
-           input message: 'Proceed with QA Testing?', ok: 'Yes, proceed'
-         }
-      }
-      
-     stage('PAUSE: Capture Test Error') {
-         steps {
-           input message: 'Proceed with REWIND to PreTest Bookmark?', ok: 'Yes, proceed'
-         }
-      }
-
-      stage('Pre-Masking Bookmark') {
-         agent { label 'devops' }
-         steps {
-            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='PreMask Bookmark'"
-         }
-      }
-            
-      stage('PAUSE: Capture AFTER Mask') {
-         steps {
-           input message: 'Proceed with Bookmark and Run Test?', ok: 'Yes, proceed'
-         }
-      }
-
-
-      stage('Error Bookmark and Make Bookmark Public') {
-         agent { label 'devops' }
-         steps {
-            sh "/root/dct-toolkit create_bookmark vdb_ids='ALPOST1' name='Error Bookmark' bookmark_type=PUBLIC"
-         }
-      }
-
-     stage('PAUSE: Capture Test Error') {
-         steps {
-           input message: 'Proceed with REWIND to PreTest Bookmark?', ok: 'Yes, proceed'
-         }
-      }
-
-
-
