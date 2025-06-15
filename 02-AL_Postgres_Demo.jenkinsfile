@@ -197,16 +197,18 @@ pipeline {
         steps {
           script {
             try {
-              timeout(time: 5, unit: 'MINUTES') {
-                input message: 'Proceed to DELETE vDB?', ok: 'Yes, proceed'
-              }
-              echo "Approved manually. Continuing..."
-            } catch (err) {
-              echo "No response within 5 minutes. Proceeding automatically."
+               timeout(time: 5, unit: 'MINUTES') {
+                  input message: 'Proceed to DELETE vDB?', ok: 'Yes, proceed'
+               }
+               echo "Approved manually. Continuing..."
+            } 
+            catch (err) {
+               echo "No response within 5 minutes. Proceeding automatically."
             }
           }
         }
       }
+      
       stage('Delete 3 vDBs') {
       parallel {
       stage('Delete ALPOST2') {
@@ -222,12 +224,10 @@ pipeline {
          }
       }      
       }
-      stage('Delete ALPOST1') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST1'"
          }
       }      
-      }
-   }
+    }
 }
