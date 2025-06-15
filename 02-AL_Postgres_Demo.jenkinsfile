@@ -61,6 +61,17 @@ pipeline {
          }
       }
 
+// After masking, take a snapshot
+
+      stage('Mask ALPOST1') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit snapshot_vdb vdb_id='ALPOST1'"
+         }
+      }
+
+
+
 // Pause to capture Masked Data
 
       stage('PAUSE: Post-Masking') {
