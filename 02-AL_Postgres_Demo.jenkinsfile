@@ -168,7 +168,7 @@ pipeline {
 
       stage('PAUSE: ERROR') {
          steps {
-           input message: 'Proceed with Rewind & Refresh?', ok: 'Yes, proceed'
+           input message: 'Proceed with Rewind QA & Refresh DEV?', ok: 'Yes, proceed'
          }
       }
 
