@@ -207,21 +207,27 @@ pipeline {
           }
         }
       }
-      stage('Delete 2 vDBs') {
+      stage('Delete 3 vDBs') {
       parallel {
-      stage('Delete ALPOST1') {
-         agent { label 'devops' }
-         steps {
-            sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST1'"
-         }
-      }
       stage('Delete ALPOST2') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST2'"
          }
       }
+      stage('Delete ALPOST3') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST3'"
+         }
+      }      
       }
+      stage('Delete ALPOST1') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='ALPOST1'"
+         }
+      }      
       }
    }
 }
