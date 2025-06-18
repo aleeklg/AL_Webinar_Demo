@@ -20,9 +20,11 @@ pipeline {
    agent { label 'devops' }
    stages {
 
-// Provision vDB AL_CRM_MASK to MaskGC
+// Provision vDB AL_CRM_MASK and AL_ERP_MASK to MaskGC
 
-      stage('Provision AL_CRM_MASK') {
+      stage('Provision vDBs from CRM and ERP') {
+      parallel {
+      stage('Provision AL_CRM_MASK') {        
          agent { label 'devops' }
          steps {
             sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
@@ -42,6 +44,29 @@ pipeline {
                   } ]'
                """
             }
+        }
+        stage('Provision AL_ERP_MASK') {        
+        agent { label 'devops' }
+        steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='Postgres_erp' \
+                  name='AL_ERP_MASK' \
+                  postgres_port='8025' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='MaskGC' \
+                  mount_point='/mnt/provision/AL_ERP_MASK_8025' \
+                  configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
+               """
+            }
+        }
+      }
       }
 
 // Pause to capture UnMasked Data
@@ -52,22 +77,42 @@ pipeline {
          }
       }
 
-// Mask AL_CRM_MASK
+// Mask AL_CRM_MASK and AL_ERP_MASK
 
-      stage('Mask AL_CRM_MASK') {
+      stage('Mask vDBs') {
+      parallel {
+      stage('Mask AL_CRM_MASK') {   
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ALPOST1 Masking'"
          }
       }
+      stage('Mask AL_ERP_MASK') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ERP - Mask GC - Mask'"
+         }
+      }
+      }
+      }
 
 // After masking, take a snapshot
 
+      stage('Snapshot MASKED vDBs') {
+      parallel {
       stage('Snapshot AL_CRM_MASK') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit snapshot_vdb vdb_id='AL_CRM_MASK'"
          }
+      }
+      stage('Snapshot AL_ERP_MASK') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit snapshot_vdb vdb_id='AL_ERP_MASK'"
+         }
+      }
+      }
       }
 
 // Pause to capture Masked Data
@@ -80,7 +125,7 @@ pipeline {
 
 // Provision cDB to QA and DEV
 
-      stage('Provision vDB to QA & DEV') {
+      stage('Provision vDBs to QA & DEV') {
       parallel {
       stage('Provision AL_CRM_QA') {
          agent { label 'devops' }
@@ -114,6 +159,48 @@ pipeline {
                   environment_user_id='postgres' --auto_select_repository \
                   target_group_id='DEV' \
                   mount_point='/mnt/provision/AL_CRM_DEV_8017' \
+                  configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
+               """
+            }
+         }
+        stage('Provision AL_ERP_QA') {
+         agent { label 'devops' }
+         steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='AL_ERP_MASK' \
+                  name='AL_ERP_QA' \
+                  postgres_port='8026' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='QA' \
+                  mount_point='/mnt/provision/AL_ERP_QA_8026' \
+                  configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
+               """
+            }
+      }
+      stage('Provision AL_ERP_DEV') {
+         agent { label 'devops' }
+         steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='AL_ERP_MASK' \
+                  name='AL_ERP_DEV' \
+                  postgres_port='8027' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='DEV' \
+                  mount_point='/mnt/provision/AL_ERP_DEV_8027' \
                   configure_clone='[ {
                      "name" : "Open Network Access",
                      "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
@@ -174,15 +261,15 @@ pipeline {
 
 // Rewind QA to Pre-Test and Refresh DEV to Bookmark ERROR
 
-      stage('QA:Rewind & DEV: ERROR') {
+      stage('Rewinf QA and Refresh DEV') {
       parallel {
-      stage('Rewind to Pre-Test BMark') {
+      stage('Rewind QA to PRE-Test') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='AL_CRM_QA' bookmark_id='Pre-Test Bookmark'"
          }
       }
-      stage('Send Error to DEV') {
+      stage('Refresh DEV to ERROR') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='AL_CRM_DEV' bookmark_id='Error Bookmark'"
@@ -209,7 +296,7 @@ pipeline {
         }
       }
       
-      stage('Delete QA & Dev') {
+      stage('Delete ALL QA & DEV vDB') {
       parallel {
       stage('Delete AL_CRM_QA') {
          agent { label 'devops' }
@@ -222,14 +309,36 @@ pipeline {
          steps {
             sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_DEV'"
          }
-      }      
+      }
+      stage('Delete AL_ERP_QA') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='AL_ERP_QA'"
+         }
+      }
+      stage('Delete AL_ERP_DEV') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='AL_ERP_DEV'"
+         }
+      }        
       }
       }
-      stage('Delete MaskGC') {
+      stage('Delete ALL MASKED vDB') {
+      parallel {
+      stage('Delete AL_CRM_MASK') {
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_MASK'"
          }
+      }
+      stage('Delete AL_ERP_MASK') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='AL_ERP_MASK'"
+         }
+      }
+      }
       }      
     }
 }
