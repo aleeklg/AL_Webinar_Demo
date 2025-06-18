@@ -90,7 +90,7 @@ pipeline {
       stage('Mask AL_ERP_MASK') {
          agent { label 'devops' }
          steps {
-            sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id=59"
+            sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='AL_ERP_MASK Masking'"
          }
       }
       }
