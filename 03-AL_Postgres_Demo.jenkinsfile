@@ -1,0 +1,235 @@
+//
+// Jenkins Pipeline for Postgres using DCT to
+//   Provision AL_CRM_MASK to MaskGC
+//   Mask AL_CRM_MASK
+//   Provision masked vDB to QA and DEV
+//   Pre-Test BMark AL_CRM_QA (QA)
+//   Run Test and Error AL_CRM_QA (QA)
+//   BMark Error and make PUBLIC
+//   QA Rewind to Pre-Test
+//   DEV Refresh to ERROR
+//   Delete Whole Env
+//
+// Demo Env:  AL Postgres Demo
+//
+// 2025 (c) Delphix - Andrew Lee (andrew.lee@perforce.com)
+//
+
+pipeline {
+
+   agent { label 'devops' }
+   stages {
+
+// Provision vDB AL_CRM_MASK to MaskGC
+
+      stage('Provision AL_CRM_MASK') {
+         agent { label 'devops' }
+         steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='Postgres_crm' \
+                  name='AL_CRM_MASK' \
+                  postgres_port='8015' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='MaskGC' \
+                  mount_point='/mnt/provision/AL_CRM_MASK_8015' \
+                  configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
+               """
+            }
+      }
+
+// Pause to capture UnMasked Data
+
+      stage('PAUSE: Pre-Masking') {
+         steps {
+           input message: 'Proceed with MASKING?', ok: 'Yes, proceed'
+         }
+      }
+
+// Mask AL_CRM_MASK
+
+      stage('Mask AL_CRM_MASK') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='AL_CRM_MASK Masking'"
+         }
+      }
+
+// After masking, take a snapshot
+
+      stage('Snapshot AL_CRM_MASK') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit snapshot_vdb vdb_id='AL_CRM_MASK'"
+         }
+      }
+
+// Pause to capture Masked Data
+
+      stage('PAUSE: Post-Masking') {
+         steps {
+           input message: 'Proceed with QA and DEV?', ok: 'Yes, proceed'
+         }
+      }
+
+// Provision cDB to QA and DEV
+
+      stage('Provision vDB to QA & DEV') {
+      parallel {
+      stage('Provision AL_CRM_QA') {
+         agent { label 'devops' }
+         steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='AL_CRM_MASK' \
+                  name='AL_CRM_QA' \
+                  postgres_port='8016' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='QA' \
+                  mount_point='/mnt/provision/AL_CRM_QA_8016' \
+                  configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
+               """
+            }
+      }
+      stage('Provision AL_CRM_DEV') {
+         agent { label 'devops' }
+         steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+                  source_data_id='AL_CRM_MASK' \
+                  name='AL_CRM_DEV' \
+                  postgres_port='8017' \
+                  environment_id='Postgres Staging' \
+                  environment_user_id='postgres' --auto_select_repository \
+                  target_group_id='DEV' \
+                  mount_point='/mnt/provision/AL_CRM_DEV_8017' \
+                  configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+                  } ]'
+               """
+            }
+         }
+      }
+      }
+
+// Pause to Capture QA and DEV
+
+      stage('PAUSE: QA & DEV') {
+         steps {
+           input message: 'Proceed with QA Testing?', ok: 'Yes, proceed'
+         }
+      }
+
+// Bookmark AL_CRM_QA Pre-Test
+
+      stage('Pre-Test BMark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='AL_CRM_QA' name='Pre-Test Bookmark'"
+         }
+      }     
+
+// Start Testing and Destroy Data
+
+      stage('Start Testing') {
+         steps {
+            sh '''
+               export PGPASSWORD=Delphix_123!
+               psql -h 10.160.1.74 -p 8016 -U postgres -d crm -c "UPDATE contacts SET last_name = 'LEE';"
+            '''
+         }
+      }
+
+// Bookmark Error and make PUBLIC
+
+      stage('Error BMark and Make Public') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit create_bookmark vdb_ids='AL_CRM_QA' name='Error Bookmark' bookmark_type=PUBLIC"
+         }
+      }
+
+// Pause to Capture ERROR
+
+      stage('PAUSE: ERROR') {
+         steps {
+           input message: 'Proceed with Rewind QA & Refresh DEV?', ok: 'Yes, proceed'
+         }
+      }
+
+// Rewind QA to Pre-Test and Refresh DEV to Bookmark ERROR
+
+      stage('QA:Rewind & DEV: ERROR') {
+      parallel {
+      stage('Rewind to Pre-Test BMark') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='AL_CRM_QA' bookmark_id='Pre-Test Bookmark'"
+         }
+      }
+      stage('Send Error to DEV') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='AL_CRM_DEV' bookmark_id='Error Bookmark'"
+         }
+      }
+      }
+      }
+
+// Pause: Delete whole Environment?
+
+      stage('PAUSE: REVERT Env?') {
+        steps {
+          script {
+            try {
+               timeout(time: 5, unit: 'MINUTES') {
+                  input message: 'Proceed to DELETE vDB?', ok: 'Yes, proceed'
+               }
+               echo "Approved manually. Continuing..."
+            } 
+            catch (err) {
+               echo "No response within 5 minutes. Proceeding automatically."
+            }
+          }
+        }
+      }
+      
+      stage('Delete QA & Dev') {
+      parallel {
+      stage('Delete AL_CRM_QA') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_QA'"
+         }
+      }
+      stage('Delete AL_CRM_DEV') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_DEV'"
+         }
+      }      
+      }
+      }
+      stage('Delete MaskGC') {
+         agent { label 'devops' }
+         steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_MASK'"
+         }
+      }      
+    }
+}
