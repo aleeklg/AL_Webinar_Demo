@@ -79,18 +79,21 @@ pipeline {
 
 // Mask AL_CRM_MASK and AL_ERP_MASK
 
-      stage('Mask AL_CRM_MASK') { 
+      stage('Mask vDBs') {
+      parallel {
+      stage('Mask AL_CRM_MASK') {   
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ALPOST1 Masking'"
          }
       }
-
       stage('Mask AL_ERP_MASK') {   
          agent { label 'devops' }
          steps {
             sh "/root/dct-toolkit execute_masking_job engine_id=cce masking_job_id='ERP - Mask GC - Mask'"
          }
+      }
+      }
       }
 
 // After masking, take a snapshot
