@@ -261,7 +261,7 @@ pipeline {
 
 // Rewind QA to Pre-Test and Refresh DEV to Bookmark ERROR
 
-      stage('Rewinf QA and Refresh DEV') {
+      stage('Rewind QA and Refresh DEV') {
       parallel {
       stage('Rewind QA to PRE-Test') {
          agent { label 'devops' }
