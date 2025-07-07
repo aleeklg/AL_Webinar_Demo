@@ -284,13 +284,13 @@ pipeline {
         steps {
           script {
             try {
-               timeout(time: 5, unit: 'MINUTES') {
+               timeout(time: 15, unit: 'MINUTES') {
                   input message: 'Proceed to DELETE vDB?', ok: 'Yes, proceed'
                }
                echo "Approved manually. Continuing..."
             } 
             catch (err) {
-               echo "No response within 5 minutes. Proceeding automatically."
+               echo "No response within 15 minutes. Proceeding automatically."
             }
           }
         }
