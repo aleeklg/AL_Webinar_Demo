@@ -64,7 +64,7 @@ pipeline {
 
     stage('Provision vDBs from CRM and ERP') {
       parallel {
-        stage('Provision ${pipelineParams.crmMaskVdbName}') {
+        stage('Provision crmMask vDB') {
           steps {
             sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.sourceCRM}' \
@@ -84,7 +84,7 @@ pipeline {
             """         
           }
         }
-        stage('Provision ${pipelineParams.erpMaskVdbName}') {
+        stage('Provision erpMask vDB') {
           steps {
             sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.sourceERP}' \
@@ -117,12 +117,12 @@ pipeline {
 
     stage('Mask vDBs') {
       parallel {
-        stage('Mask ${pipelineParams.crmMaskVdbName}') {
+        stage('Mask crmMask vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} execute_masking_job engine_id='${pipelineParams.cceEngineId}' masking_job_id='${pipelineParams.crmMaskingJob}'"
           }
         }
-        stage('Mask ${pipelineParams.erpMaskVdbName}') {
+        stage('Mask erpMask vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} execute_masking_job engine_id='${pipelineParams.cceEngineId}' masking_job_id='${pipelineParams.erpMaskingJob}'"
           }
@@ -134,12 +134,12 @@ pipeline {
 
     stage('Snapshot MASKED vDBs') {
       parallel {
-        stage('Snapshot ${pipelineParams.crmMaskVdbName}') {
+        stage('Snapshot crmMask vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} snapshot_vdb vdb_id='${pipelineParams.crmMaskVdbName}'"
           }
         }
-        stage('Snapshot ${pipelineParams.erpMaskVdbName}') {
+        stage('Snapshot erpMask vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} snapshot_vdb vdb_id='${pipelineParams.erpMaskVdbName}'"
           }
@@ -159,7 +159,7 @@ pipeline {
 
     stage('Provision QA/DEV vDBs') {
       parallel {
-        stage('Provision ${pipelineParams.crmQaVdbName}') {
+        stage('Provision crmQa vDB') {
           steps {
             sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.crmMaskVdbName}' \
@@ -179,7 +179,7 @@ pipeline {
             """
           }
         }
-        stage('Provision ${pipelineParams.crmDevVdbName}') {
+        stage('Provision crmDev vDB') {
           steps {
             sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.crmMaskVdbName}' \
@@ -199,7 +199,7 @@ pipeline {
             """
           }
         }
-        stage('Provision ${pipelineParams.erpQaVdbName}') {
+        stage('Provision erpQa vDB') {
           steps {
             sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.erpMaskVdbName}' \
@@ -219,7 +219,7 @@ pipeline {
             """
           }
         }
-        stage('Provision ${pipelineParams.erpDevVdbName}') {
+        stage('Provision erpDev vDB}') {
           steps {
             sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.erpMaskVdbName}' \
@@ -318,22 +318,22 @@ pipeline {
 
     stage('Delete All QA/DEV vDB') {
       parallel {
-        stage('Delete ${pipelineParams.crmQaVdbName}') {
+        stage('Delete crmQa vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.crmQaVdbName}'"
           }
         }
-        stage('Delete ${pipelineParams.crmDevVdbName}') {
+        stage('Delete crmDev vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.crmDevVdbName}'"
           }
         }
-        stage('Delete ${pipelineParams.erpQaVdbName}') {
+        stage('Delete erpQa vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.erpQaVdbName}'"
           }
         }
-        stage('Delete ${pipelineParams.erpDevVdbName}') {
+        stage('Delete erpDev vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.erpDevVdbName}'"
           }
@@ -343,12 +343,12 @@ pipeline {
 
     stage('Delete All MASKED vDB') {
       parallel {
-        stage('Delete ${pipelineParams.crmMaskVdbName}') {
+        stage('Delete crmMask vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.crmMaskVdbName}'"
           }
         }
-        stage('Delete ${pipelineParams.erpMaskVdbName}') {
+        stage('Delete erpMask vDB') {
           steps {
             sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.erpMaskVdbName}'"
           }
