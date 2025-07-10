@@ -34,6 +34,9 @@ def pipelineParams = [
 pipeline {
   agent { label 'devops' }
   stages {
+
+// Provision vDB AL_CRM_MASK and AL_ERP_MASK to MaskGC
+
     stage('Provision vDBs from CRM and ERP') {
       parallel {
         stage('Provision AL_CRM_MASK') {
@@ -52,7 +55,8 @@ pipeline {
                      "shell" : "bash",
                      "element_id" : "0",
                      "has_credentials" : false
-              } ]' """         
+              } ]' 
+            """         
           }
         }
         stage('Provision AL_ERP_MASK') {
@@ -71,11 +75,14 @@ pipeline {
                      "shell" : "bash",
                      "element_id" : "0",
                      "has_credentials" : false
-              } ]' """
+              } ]' 
+            """
           }
         }
       }
     }
+
+// Pause to capture UnMasked Data
 
     stage('PAUSE: Pre-Masking') {
       steps {
@@ -98,6 +105,8 @@ pipeline {
       }
     }
 
+// After masking, take a snapshot
+
     stage('Snapshot MASKED vDBs') {
       parallel {
         stage('Snapshot AL_CRM_MASK') {
@@ -113,11 +122,15 @@ pipeline {
       }
     }
 
+// Pause to capture Masked Data
+
     stage('PAUSE: Post-Masking') {
       steps {
         input message: 'Proceed with QA and DEV?', ok: 'Yes, proceed'
       }
     }
+
+// Provision vDB to QA and DEV
 
     stage('Provision QA/DEV vDBs') {
       parallel {
@@ -131,7 +144,14 @@ pipeline {
               environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
               target_group_id='${pipelineParams.qaGroupId}' \
               mount_point='${pipelineParams.mountBasePath}/AL_CRM_QA_8016' \
-              configure_clone='[ {\n                 "name" : "Open Network Access",\n                 "command" : ". /var/lib/pgsql/modify_pg_hba.sh",\n                 "shell" : "bash",\n                 "element_id" : "0",\n                 "has_credentials" : false\n              } ]'"""
+              configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+              } ]'
+            """
           }
         }
         stage('Provision AL_CRM_DEV') {
@@ -144,11 +164,60 @@ pipeline {
               environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
               target_group_id='${pipelineParams.devGroupId}' \
               mount_point='${pipelineParams.mountBasePath}/AL_CRM_DEV_8017' \
-              configure_clone='[ {\n                 "name" : "Open Network Access",\n                 "command" : ". /var/lib/pgsql/modify_pg_hba.sh",\n                 "shell" : "bash",\n                 "element_id" : "0",\n                 "has_credentials" : false\n              } ]'"""
+              configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+              } ]'
+            """
+          }
+        }
+        stage('Provision AL_ERP_QA') {
+          steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+              source_data_id='AL_ERP_MASK' \
+              name='AL_ERP_QA' \
+              postgres_port='8026' \
+              environment_id='${pipelineParams.stagingEnvId}' \
+              environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
+              target_group_id='${pipelineParams.qaGroupId}' \
+              mount_point='${pipelineParams.mountBasePath}/AL_ERP_QA_8026' \
+              configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+              } ]'
+            """
+          }
+        }
+        stage('Provision AL_CRM_DEV') {
+          steps {
+            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+              source_data_id='AL_ERP_MASK' \
+              name='AL_ERP_DEV' \
+              postgres_port='8027' \
+              environment_id='${pipelineParams.stagingEnvId}' \
+              environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
+              target_group_id='${pipelineParams.devGroupId}' \
+              mount_point='${pipelineParams.mountBasePath}/AL_ERP_DEV_8027' \
+              configure_clone='[ {
+                     "name" : "Open Network Access",
+                     "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
+                     "shell" : "bash",
+                     "element_id" : "0",
+                     "has_credentials" : false
+              } ]'
+            """
           }
         }
       }
     }
+
+// Pause to Capture QA and DEV
 
     stage('PAUSE: QA & DEV') {
       steps {
@@ -156,11 +225,15 @@ pipeline {
       }
     }
 
+// Bookmark AL_CRM_QA Pre-Test
+
     stage('Bookmark Pre-Test') {
       steps {
         sh "/root/dct-toolkit create_bookmark vdb_ids='AL_CRM_QA' name='Pre-Test Bookmark'"
       }
     }
+
+// Start Testing and Destroy Data
 
     stage('Start Testing') {
       steps {
@@ -177,11 +250,15 @@ pipeline {
       }
     }
 
+// Pause to Capture ERROR
+
     stage('PAUSE: ERROR') {
       steps {
         input message: 'Proceed with Rewind QA & Refresh DEV?', ok: 'Yes, proceed'
       }
     }
+
+// Rewind QA to Pre-Test and Refresh DEV to Bookmark ERROR
 
     stage('Rewind QA and Refresh DEV') {
       parallel {
@@ -197,6 +274,8 @@ pipeline {
         }
       }
     }
+
+// Pause: Delete whole Environment?
 
     stage('PAUSE: DELETE Env') {
       steps {
@@ -222,6 +301,16 @@ pipeline {
         stage('Delete AL_CRM_DEV') {
           steps {
             sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_DEV'"
+          }
+        }
+        stage('Delete AL_ERP_QA') {
+          steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='AL_ERP_QA'"
+          }
+        }
+        stage('Delete AL_ERP_DEV') {
+          steps {
+            sh "/root/dct-toolkit delete_vdb vdb_id='AL_ERP_DEV'"
           }
         }
       }

@@ -77,7 +77,7 @@ pipeline {
          }
       }
 
-// Mask AL_CRM_MASK and AL_ERP_MASK
+// Pause to capture UnMasked Data
 
       stage('Mask vDBs') {
       parallel {
