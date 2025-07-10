@@ -19,34 +19,30 @@ def pipelineParams = [
 dctToolKit          : '/root/dct-toolkit',
 cceEngineId         : 'cce',
 stagingEnvId        : 'Postgres Staging',
-mountBasePath       : '/mnt/provision',
-
 sourceCRM           : 'Postgres_crm',
 sourceERP           : 'Postgres_erp',
+
+mountBasePath       : '/mnt/provision',
 
 crmMaskingJob       : 'ALPOST1 Masking',
 erpMaskingJob       : 'ERP - Mask GC - Mask',
 
-crmMaskPort         : '8015',
-crmQaPort           : '8016',
-crmDevPort          : '8017',
-erpMaskPort         : '8025',
-erpQaPort           : '8026',
-erpDevPort          : '8027',
-
 crmMaskVdbName      : 'AL_CRM_MASK',
+crmMaskPort         : '8015',
 crmQaVdbName        : 'AL_CRM_QA',
+crmQaPort           : '8016',
 crmDevVdbName       : 'AL_CRM_DEV',
+crmDevPort          : '8017',
 erpMaskVdbName      : 'AL_ERP_MASK',
+erpMaskPort         : '8025',
 erpQaVdbName        : 'AL_ERP_QA',
+erpQaPort           : '8026',
 erpDevVdbName       : 'AL_ERP_DEV',
+erpDevPort          : '8027',
 
 maskGroupId         : 'MaskGC',
 qaGroupId           : 'QA',
 devGroupId          : 'DEV',
-
-BOOKMARK_PRETEST    : 'Pre-Test Bookmark',
-BOOKMARK_ERROR      : 'Error Bookmark',
 
 postgresHost        : '10.160.1.74',
 DB_PORT_QA          : '8016',
