@@ -45,8 +45,7 @@ qaGroupId           : 'QA',
 devGroupId          : 'DEV',
 
 postgresHost        : '10.160.1.74',
-DB_PORT_QA          : '8016',
-DB_NAME_QA          : 'crm',
+dbNameQa            : 'crm',
 postgresUser        : 'postgres',
 postgresPassword    : 'Delphix_123!'
 ]
@@ -260,7 +259,7 @@ pipeline {
       steps {
         sh """
           export PGPASSWORD=${pipelineParams.postgresPassword}
-          psql -h ${pipelineParams.postgresHost} -p ${pipelineParams.crmQaPort} -U ${pipelineParams.postgresUser} -d crm -c \"UPDATE contacts SET last_name = 'LEE';\"
+          psql -h ${pipelineParams.postgresHost} -p ${pipelineParams.crmQaPort} -U ${pipelineParams.postgresUser} -d ${pipelineParams.dbNameQa} -c \"UPDATE contacts SET last_name = 'LEE';\"
         """
       }
     }
