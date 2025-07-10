@@ -37,6 +37,7 @@ pipeline {
     stage('Provision vDBs from CRM and ERP') {
       parallel {
         stage('Provision AL_CRM_MASK') {
+          agent { label 'devops' }
           steps {
             sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.sourceCRM}' \
@@ -56,6 +57,7 @@ pipeline {
           }
         }
         stage('Provision AL_ERP_MASK') {
+          agent { label 'devops' }
           steps {
             sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.sourceERP}' \
