@@ -16,20 +16,45 @@
 //
 
 def pipelineParams = [
-  postgresUser      : 'postgres',
-  postgresPassword  : 'Delphix_123!',
-  postgresHost      : '10.160.1.74',
-  stagingEnvId      : 'Postgres Staging',
-  mountBasePath     : '/mnt/provision',
-  sourceCRM         : 'Postgres_crm',
-  sourceERP         : 'Postgres_erp',
-  engineId          : 'cce',
-  crmMaskingJob     : 'ALPOST1 Masking',
-  erpMaskingJob     : 'ERP - Mask GC - Mask',
-  qaGroupId         : 'QA',
-  devGroupId        : 'DEV',
-  maskGroupId       : 'MaskGC'
+dctToolKit          : '/root/dct-toolkit',
+cceEngineId         : 'cce',
+stagingEnvId        : 'Postgres Staging',
+mountBasePath       : '/mnt/provision',
+
+sourceCRM           : 'Postgres_crm',
+sourceERP           : 'Postgres_erp',
+
+crmMaskingJob       : 'ALPOST1 Masking',
+erpMaskingJob       : 'ERP - Mask GC - Mask',
+
+crmMaskPort         : '8015',
+crmQaPort           : '8016',
+srmDevPort          : '8017',
+erpMaskPort         : '8025',
+erpQaPort           : '8026',
+erpDevPort          : '8027',
+
+crmMaskVdbName      : 'AL_CRM_MASK',
+crmQaVdbName        : 'AL_CRM_QA',
+crmDevVdbName       : 'AL_CRM_DEV',
+erpMaskVdbName      : 'AL_ERP_MASK',
+erpQaVdbName        : 'AL_ERP_QA',
+erpDevVdbName       : 'AL_ERP_DEV',
+
+maskGroupId         : 'MaskGC',
+qaGroupId           : 'QA',
+devGroupId          : 'DEV',
+
+BOOKMARK_PRETEST    : 'Pre-Test Bookmark',
+BOOKMARK_ERROR      : 'Error Bookmark',
+
+postgresHost        : '10.160.1.74',
+DB_PORT_QA          : '8016',
+DB_NAME_QA          : 'crm',
+postgresUser        : 'postgres',
+postgresPassword    : 'Delphix_123!'
 ]
+
 
 pipeline {
   agent { label 'devops' }
@@ -39,16 +64,16 @@ pipeline {
 
     stage('Provision vDBs from CRM and ERP') {
       parallel {
-        stage('Provision AL_CRM_MASK') {
+        stage('Provision ${pipelineParams.crmMaskVdbName}') {
           steps {
-            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+            sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.sourceCRM}' \
-              name='AL_CRM_MASK' \
-              postgres_port='8015' \
+              name='${pipelineParams.crmMaskVdbName}' \
+              postgres_port='${pipelineParams.crmMaskPort}' \
               environment_id='${pipelineParams.stagingEnvId}' \
               environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
               target_group_id='${pipelineParams.maskGroupId}' \
-              mount_point='${pipelineParams.mountBasePath}/AL_CRM_MASK_8015' \
+              mount_point='${pipelineParams.mountBasePath}/${pipelineParams.crmMaskVdbName}_${pipelineParams.crmMaskPort}' \
               configure_clone='[ {
                      "name" : "Open Network Access",
                      "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
@@ -59,16 +84,16 @@ pipeline {
             """         
           }
         }
-        stage('Provision AL_ERP_MASK') {
+        stage('Provision ${pipelineParams.erpMaskVdbName}') {
           steps {
-            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
+            sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
               source_data_id='${pipelineParams.sourceERP}' \
-              name='AL_ERP_MASK' \
-              postgres_port='8025' \
+              name='${pipelineParams.erpMaskVdbName}' \
+              postgres_port='${pipelineParams.erpMaskPort}' \
               environment_id='${pipelineParams.stagingEnvId}' \
               environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
               target_group_id='${pipelineParams.maskGroupId}' \
-              mount_point='${pipelineParams.mountBasePath}/AL_ERP_MASK_8025' \
+              mount_point='${pipelineParams.mountBasePath}/${pipelineParams.erpMaskVdbName}_${pipelineParams.erpMaskPort}' \
               configure_clone='[ {
                      "name" : "Open Network Access",
                      "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
@@ -92,14 +117,14 @@ pipeline {
 
     stage('Mask vDBs') {
       parallel {
-        stage('Mask AL_CRM_MASK') {
+        stage('Mask ${pipelineParams.crmMaskVdbName}') {
           steps {
-            sh "/root/dct-toolkit execute_masking_job engine_id='${pipelineParams.engineId}' masking_job_id='${pipelineParams.crmMaskingJob}'"
+            sh "${pipelineParams.dctToolKit} execute_masking_job engine_id='${pipelineParams.cceEngineId}' masking_job_id='${pipelineParams.crmMaskingJob}'"
           }
         }
-        stage('Mask AL_ERP_MASK') {
+        stage('Mask ${pipelineParams.erpMaskVdbName}') {
           steps {
-            sh "/root/dct-toolkit execute_masking_job engine_id='${pipelineParams.engineId}' masking_job_id='${pipelineParams.erpMaskingJob}'"
+            sh "${pipelineParams.dctToolKit} execute_masking_job engine_id='${pipelineParams.cceEngineId}' masking_job_id='${pipelineParams.erpMaskingJob}'"
           }
         }
       }
@@ -109,14 +134,14 @@ pipeline {
 
     stage('Snapshot MASKED vDBs') {
       parallel {
-        stage('Snapshot AL_CRM_MASK') {
+        stage('Snapshot ${pipelineParams.crmMaskVdbName}') {
           steps {
-            sh "/root/dct-toolkit snapshot_vdb vdb_id='AL_CRM_MASK'"
+            sh "${pipelineParams.dctToolKit} snapshot_vdb vdb_id='${pipelineParams.crmMaskVdbName}'"
           }
         }
-        stage('Snapshot AL_ERP_MASK') {
+        stage('Snapshot ${pipelineParams.erpMaskVdbName}') {
           steps {
-            sh "/root/dct-toolkit snapshot_vdb vdb_id='AL_ERP_MASK'"
+            sh "${pipelineParams.dctToolKit} snapshot_vdb vdb_id='${pipelineParams.erpMaskVdbName}'"
           }
         }
       }
@@ -134,16 +159,16 @@ pipeline {
 
     stage('Provision QA/DEV vDBs') {
       parallel {
-        stage('Provision AL_CRM_QA') {
+        stage('Provision ${pipelineParams.crmQaVdbName}') {
           steps {
-            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
-              source_data_id='AL_CRM_MASK' \
-              name='AL_CRM_QA' \
-              postgres_port='8016' \
+            sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
+              source_data_id='${pipelineParams.crmMaskVdbName}' \
+              name='${pipelineParams.crmQaVdbName}' \
+              postgres_port='${pipelineParams.crmQaPort}' \
               environment_id='${pipelineParams.stagingEnvId}' \
               environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
               target_group_id='${pipelineParams.qaGroupId}' \
-              mount_point='${pipelineParams.mountBasePath}/AL_CRM_QA_8016' \
+              mount_point='${pipelineParams.mountBasePath}/${pipelineParams.crmQaVdbName}_${pipelineParams.crmQaPort}' \
               configure_clone='[ {
                      "name" : "Open Network Access",
                      "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
@@ -154,16 +179,16 @@ pipeline {
             """
           }
         }
-        stage('Provision AL_CRM_DEV') {
+        stage('Provision ${pipelineParams.crmDevVdbName}') {
           steps {
-            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
-              source_data_id='AL_CRM_MASK' \
-              name='AL_CRM_DEV' \
-              postgres_port='8017' \
+            sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
+              source_data_id='${pipelineParams.crmMaskVdbName}' \
+              name='${pipelineParams.crmDevVdbName}' \
+              postgres_port='${pipelineParams.crmDevPort}' \
               environment_id='${pipelineParams.stagingEnvId}' \
               environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
               target_group_id='${pipelineParams.devGroupId}' \
-              mount_point='${pipelineParams.mountBasePath}/AL_CRM_DEV_8017' \
+              mount_point='${pipelineParams.mountBasePath}/${pipelineParams.crmDevVdbName}_${pipelineParams.crmDevPort}' \
               configure_clone='[ {
                      "name" : "Open Network Access",
                      "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
@@ -174,16 +199,16 @@ pipeline {
             """
           }
         }
-        stage('Provision AL_ERP_QA') {
+        stage('Provision ${pipelineParams.erpQaVdbName}') {
           steps {
-            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
-              source_data_id='AL_ERP_MASK' \
-              name='AL_ERP_QA' \
-              postgres_port='8026' \
+            sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
+              source_data_id='${pipelineParams.erpMaskVdbName}' \
+              name='${pipelineParams.erpQaVdbName}' \
+              postgres_port='${pipelineParams.erpQaPort}' \
               environment_id='${pipelineParams.stagingEnvId}' \
               environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
               target_group_id='${pipelineParams.qaGroupId}' \
-              mount_point='${pipelineParams.mountBasePath}/AL_ERP_QA_8026' \
+              mount_point='${pipelineParams.mountBasePath}/${pipelineParams.erpQaVdbName}_${pipelineParams.erpQaPort}' \
               configure_clone='[ {
                      "name" : "Open Network Access",
                      "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
@@ -194,16 +219,16 @@ pipeline {
             """
           }
         }
-        stage('Provision AL_ERP_DEV') {
+        stage('Provision ${pipelineParams.erpDevVdbName}') {
           steps {
-            sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
-              source_data_id='AL_ERP_MASK' \
-              name='AL_ERP_DEV' \
-              postgres_port='8027' \
+            sh """${pipelineParams.dctToolKit} provision_vdb_by_snapshot postgres \
+              source_data_id='${pipelineParams.erpMaskVdbName}' \
+              name='${pipelineParams.erpDevVdbName}' \
+              postgres_port='${pipelineParams.erpDevPort}' \
               environment_id='${pipelineParams.stagingEnvId}' \
               environment_user_id='${pipelineParams.postgresUser}' --auto_select_repository \
               target_group_id='${pipelineParams.devGroupId}' \
-              mount_point='${pipelineParams.mountBasePath}/AL_ERP_DEV_8027' \
+              mount_point='${pipelineParams.mountBasePath}/${pipelineParams.erpDevVdbName}_${pipelineParams.erpDevPort}' \
               configure_clone='[ {
                      "name" : "Open Network Access",
                      "command" : ". /var/lib/pgsql/modify_pg_hba.sh",
@@ -229,7 +254,7 @@ pipeline {
 
     stage('Bookmark Pre-Test') {
       steps {
-        sh "/root/dct-toolkit create_bookmark vdb_ids='AL_CRM_QA' name='Pre-Test Bookmark'"
+        sh "${pipelineParams.dctToolKit} create_bookmark vdb_ids='${pipelineParams.crmQaVdbName}' name='Pre-Test Bookmark'"
       }
     }
 
@@ -239,14 +264,14 @@ pipeline {
       steps {
         sh """
           export PGPASSWORD=${pipelineParams.postgresPassword}
-          psql -h ${pipelineParams.postgresHost} -p 8016 -U ${pipelineParams.postgresUser} -d crm -c \"UPDATE contacts SET last_name = 'LEE';\"
+          psql -h ${pipelineParams.postgresHost} -p ${pipelineParams.crmQaPort} -U ${pipelineParams.postgresUser} -d crm -c \"UPDATE contacts SET last_name = 'LEE';\"
         """
       }
     }
 
     stage('Bookmark Error and Make Public') {
       steps {
-        sh "/root/dct-toolkit create_bookmark vdb_ids='AL_CRM_QA' name='Error Bookmark' bookmark_type=PUBLIC"
+        sh "${pipelineParams.dctToolKit} create_bookmark vdb_ids='${pipelineParams.crmQaVdbName}' name='Error Bookmark' bookmark_type=PUBLIC"
       }
     }
 
@@ -264,12 +289,12 @@ pipeline {
       parallel {
         stage('Rewind QA') {
           steps {
-            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='AL_CRM_QA' bookmark_id='Pre-Test Bookmark'"
+            sh "${pipelineParams.dctToolKit} refresh_vdb_from_bookmark vdb_id='${pipelineParams.crmQaVdbName}' bookmark_id='Pre-Test Bookmark'"
           }
         }
         stage('Refresh DEV') {
           steps {
-            sh "/root/dct-toolkit refresh_vdb_from_bookmark vdb_id='AL_CRM_DEV' bookmark_id='Error Bookmark'"
+            sh "${pipelineParams.dctToolKit} refresh_vdb_from_bookmark vdb_id='${pipelineParams.crmDevVdbName}' bookmark_id='Error Bookmark'"
           }
         }
       }
@@ -293,24 +318,24 @@ pipeline {
 
     stage('Delete All QA/DEV vDB') {
       parallel {
-        stage('Delete AL_CRM_QA') {
+        stage('Delete ${pipelineParams.crmQaVdbName}') {
           steps {
-            sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_QA'"
+            sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.crmQaVdbName}'"
           }
         }
-        stage('Delete AL_CRM_DEV') {
+        stage('Delete ${pipelineParams.crmDevVdbName}') {
           steps {
-            sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_DEV'"
+            sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.crmDevVdbName}'"
           }
         }
-        stage('Delete AL_ERP_QA') {
+        stage('Delete ${pipelineParams.erpQaVdbName}') {
           steps {
-            sh "/root/dct-toolkit delete_vdb vdb_id='AL_ERP_QA'"
+            sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.erpQaVdbName}'"
           }
         }
-        stage('Delete AL_ERP_DEV') {
+        stage('Delete ${pipelineParams.erpDevVdbName}') {
           steps {
-            sh "/root/dct-toolkit delete_vdb vdb_id='AL_ERP_DEV'"
+            sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.erpDevVdbName}'"
           }
         }
       }
@@ -318,14 +343,14 @@ pipeline {
 
     stage('Delete All MASKED vDB') {
       parallel {
-        stage('Delete AL_CRM_MASK') {
+        stage('Delete ${pipelineParams.crmMaskVdbName}') {
           steps {
-            sh "/root/dct-toolkit delete_vdb vdb_id='AL_CRM_MASK'"
+            sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.crmMaskVdbName}'"
           }
         }
-        stage('Delete AL_ERP_MASK') {
+        stage('Delete ${pipelineParams.erpMaskVdbName}') {
           steps {
-            sh "/root/dct-toolkit delete_vdb vdb_id='AL_ERP_MASK'"
+            sh "${pipelineParams.dctToolKit} delete_vdb vdb_id='${pipelineParams.erpMaskVdbName}'"
           }
         }
       }
