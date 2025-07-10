@@ -194,7 +194,7 @@ pipeline {
             """
           }
         }
-        stage('Provision AL_CRM_DEV') {
+        stage('Provision AL_ERP_DEV') {
           steps {
             sh """/root/dct-toolkit provision_vdb_by_snapshot postgres \
               source_data_id='AL_ERP_MASK' \
