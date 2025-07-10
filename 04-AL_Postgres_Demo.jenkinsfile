@@ -29,7 +29,7 @@ erpMaskingJob       : 'ERP - Mask GC - Mask',
 
 crmMaskPort         : '8015',
 crmQaPort           : '8016',
-srmDevPort          : '8017',
+crmDevPort          : '8017',
 erpMaskPort         : '8025',
 erpQaPort           : '8026',
 erpDevPort          : '8027',
