@@ -1,0 +1,62 @@
+{
+    "conditions": [
+        {
+            "key": [
+                "Old_IC"
+            ],
+            "string1": {
+                "name": "AL Old IC"
+            }
+        },
+        {
+            "key": [
+                "New_IC"
+            ],
+            "string1": {
+                "name": "AL New IC"
+            }
+        },
+        {
+            "key": [
+                "Passport"
+            ],
+            "string1": {
+                "name": "Al Passport"
+            }
+        },
+        {
+            "key": [
+                "Army_ID"
+            ],
+            "string1": {
+                "name": "AL Army ID"
+            }
+        },
+        {
+            "key": [
+                "Corp_ID"
+            ],
+            "string1": {
+                "name": "dlpx-core:CM Alpha-Numeric"
+            }
+        }
+    ],
+    "fallbackKey": "",
+    "fallbackAlgo": {
+        "dateAlgo": {
+            "name": "DateShiftDiscrete"
+        },
+        "binaryAlgo": {
+            "name": "NullValueLookup"
+        },
+        "stringAlgo": {
+            "name": "dlpx-core:CM Alpha-Numeric"
+        },
+        "numericAlgo": {
+            "name": "dlpx-core:CM Numeric"
+        }
+    },
+    "filterLength": 0,
+    "filterDirection": "FIRST",
+    "keyCaseSensitive": false
+}
