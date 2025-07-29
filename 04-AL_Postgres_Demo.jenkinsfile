@@ -52,7 +52,7 @@ postgresPassword    : 'Delphix_123!'
 
 
 pipeline {
-  agent { label 'devops' }
+//  agent { label 'devops' }
   stages {
 
 // Provision vDB AL_CRM_MASK and AL_ERP_MASK to MaskGC
