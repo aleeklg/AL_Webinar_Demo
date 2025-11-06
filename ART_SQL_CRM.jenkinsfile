@@ -6,45 +6,43 @@
 // 2024 (c) Delphix - ALee, NickLG
 //
 pipeline {
-   agent { label 'devops' }
-   stages {
-      stage('Provision alcrm01 VDB') {
-         agent { label 'devops' }
-         steps {
-            sh "/home/delphix/dct-toolkit provision_vdb_by_snapshot mssql engine_id='CDE1' source_data_id='crm' name='aleecrm01' database_name='aleecrm01' environment_id='Sqlserver_Target' environment_user_id='delphix_os' repository_id='MSSQLSERVER' target_group_id='QA'"
-            sh "exit 0"
-         }
-      }
-   }
-   stage('PAUSE: Update Prod crm') {
-      steps {
-        input message: 'Proceed with Snapshot?', ok: 'Yes, proceed'
-      }
+    agent { label 'devops' }
+    stages {
+        stage('Provision alcrm01 VDB') {
+            agent { label 'devops' }
+            steps {
+                sh "/home/delphix/dct-toolkit provision_vdb_by_snapshot mssql engine_id='CDE1' source_data_id='crm' name='aleecrm01' database_name='aleecrm01' environment_id='Sqlserver_Target' environment_user_id='delphix_os' repository_id='MSSQLSERVER' target_group_id='QA'"
+                sh "exit 0"
+            }
+        }
+        stage('PAUSE: Update Prod crm') {
+            steps {
+                input message: 'Proceed with Snapshot?', ok: 'Yes, proceed'
+            }
+        }
+        stage('Snap Prod crm') {
+            agent { label 'devops' }
+            steps {
+                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='crm'"
+            }
+        }
+        stage('Refresh alcrm01') {
+            agent { label 'devops' }
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='alcrm01'"
+            }
+        }
+        stage('PAUSE: Check alcrm01 for updates') {
+            steps {
+                input message: 'Proceed to delete alcrm01', ok: 'Yes, proceed'
+            }
+        }
+        stage('Delete alcrm01') {
+            agent { label 'devops' }
+                steps {
+                    sh "/home/delphix/dct-toolkit delete_vdb vdb_id='alcrm01'"
+                    sh "exit 0"
+                }
+        }
     }
-   stage('Snap Prod crm') {
-         agent { label 'devops' }
-         steps {
-            sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='crm'"
-         }
-      }
-      stage('Refresh alcrm01') {
-         agent { label 'devops' }
-         steps {
-            sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='alcrm01'"
-         }
-      }
-      stage('PAUSE: Check alcrm01 for updates') {
-      steps {
-        input message: 'Proceed to delete alcrm01', ok: 'Yes, proceed'
-      }
-    }
-      stages {
-      stage('Delete alcrm01') {
-         agent { label 'devops' }
-         steps {
-            sh "/home/delphix/dct-toolkit delete_vdb vdb_id='alcrm01'"
-            sh "exit 0"
-         }
-      }
-   }
 }
