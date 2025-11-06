@@ -33,5 +33,19 @@ pipeline {
             sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='alcrm01'"
          }
       }
+      stage('PAUSE: Check alcrm01 for updates') {
+      steps {
+        input message: 'Proceed to delete alcrm01', ok: 'Yes, proceed'
+      }
+    }
+      stages {
+      stage('Delete alcrm01') {
+         agent { label 'devops' }
+         steps {
+            sh "/home/delphix/dct-toolkit delete_vdb vdb_id='alcrm01'"
+            sh "exit 0"
+         }
+      }
+   }
     }
 }
