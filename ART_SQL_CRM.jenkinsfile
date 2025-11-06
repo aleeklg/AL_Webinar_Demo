@@ -1,9 +1,9 @@
 //
-// Pipeline to create Sqlserver VDB - DCT version
+// Pipeline for ART DEMO
 //
 // Demo:  Standard Demo
 //
-// 2024 (c) Delphix - Matteo Ferrari (matteo.ferrari@delphix.com)
+// 2024 (c) Delphix - ALee, NickLG
 //
 pipeline {
    agent { label 'devops' }
@@ -16,7 +16,11 @@ pipeline {
          }
       }
    }
-   
+   stage('PAUSE: Update Prod crm') {
+      steps {
+        input message: 'Proceed with Snapshot?', ok: 'Yes, proceed'
+      }
+    }
    stage('Snap Prod crm') {
          agent { label 'devops' }
          steps {
@@ -29,4 +33,5 @@ pipeline {
             sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='alcrm01'"
          }
       }
+    }
 }
