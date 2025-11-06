@@ -18,7 +18,7 @@ pipeline {
         stage('Mask alcrm01 vDB') {
             agent { label 'devops' }
             steps {
-                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' masking_job_id='CRM_Mask'"
+                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' masking_job_id='alcrm01_masking'"
             }
         }
         stage('PAUSE: Update Prod crm') {
