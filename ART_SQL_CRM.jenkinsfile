@@ -133,7 +133,7 @@ pipeline {
 
 // Pause to Capture ERROR
 
-        stage('PAUSE: Inspect ERROR in artcrm_QA') {
+        stage('PAUSE: Inspect artcrm_QA') {
             steps {
                 input message: 'Proceed with Rewind QA & Refresh DEV?', ok: 'Yes, proceed'
             }
@@ -158,7 +158,7 @@ pipeline {
 
 // Pause to Delete Bookmarks
 
-        stage('PAUSE: Inspect ERROR in artcrm_DEV') {
+        stage('PAUSE: Inspect artcrm_DEV') {
             steps {
                 input message: 'Proceed to Delete Bookmarks?', ok: 'Yes, proceed'
             }
