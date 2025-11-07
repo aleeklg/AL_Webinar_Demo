@@ -8,53 +8,148 @@
 pipeline {
     agent { label 'devops' }
     stages {
-        stage('Provision alcrm01 vDB') {
-            agent { label 'devops' }
-            steps {
-                sh "/home/delphix/dct-toolkit provision_vdb_by_snapshot mssql engine_id='CDE1' source_data_id='crm' name='alcrm01' database_name='alcrm01' environment_id='Sqlserver_Target' environment_user_id='delphix_os' repository_id='MSSQLSERVER' target_group_id='MaskGC'"
-                sh "exit 0"
-            }
-        }
-        stage('Mask alcrm01 vDB') {
-            agent { label 'devops' }
-            steps {
-                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' masking_job_id='alcrm01_masking'"
-            }
-        }
-        stage('PAUSE: Update Prod crm') {
-            steps {
-                input message: 'Proceed with Snapshot?', ok: 'Yes, proceed'
-            }
-        }
+
+// Provision artcrm01 vDB
+//
+//       stage('Provision artcrm01 vDB') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit provision_vdb_by_snapshot \
+//                mssql engine_id='CDE1' source_data_id='crm' name='artcrm01' \
+//                database_name='artcrm01' environment_id='Sqlserver_Target' \
+//                environment_user_id='delphix_os' repository_id='MSSQLSERVER' \
+//                target_group_id='MaskGC'"
+//                sh "exit 0"
+//            }
+//        }
+//
+// Mask artcrm01 vDB
+//
+//        stage('Mask artcrm01 vDB') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
+//                masking_job_id='alcrm01_masking'"
+//            }
+//        }
+
+// Pause to inspect masked artcrm01 and to update Prod crm
+//
+//        stage('PAUSE: Proceed to Update Prod crm?') {
+//            steps {
+//                input message: 'Proceed with Snapshot?', ok: 'Yes, proceed'
+//            }
+//        }
+
+// PREREQUISTES:
+// -------------
+// artcrm_MASK vDB already provisioned and masked
+// artcrm_MASK replicated to CDE2
+// at CDE2, artcrm_QA and artcrm_DEV are provisioned from the remote clone of artcrm_MASK
+// DBeaver already setup with proper connection to Prod crm, artcrm_MASK; and remote artcrm_QA and artcrm_DEV
+// inspect Prod crm and artcrm_MASK vDB before start of pipeline
+
+// START OF DEMO
+// --------------
+// make changes to Prod crm, remember to "commit" the changes
+// example is duplicate five rows and show row number incresed from 200 to 205
+// show the changes made to Prod crm
+// then start the pipeline
+
+// START OF PIPELINE:
+// ------------------
+// take a snapshot of the changed Prod crm
+
         stage('Snap Prod crm') {
-            agent { label 'devops' }
             steps {
                 sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='crm'"
             }
         }
-        stage('Refresh aleecrm01') {
-            agent { label 'devops' }
+
+// Refresh the artcrm_MASK vDB
+
+        stage('Refresh artcrm_MASK') {
             steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='alcrm01'"
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_MASK'"
             }
         }
-        stage('Mask alcrm01 vDB after refresh') {
-            agent { label 'devops' }
+
+// Mask the artcrm_MASK after refresh
+
+        stage('Mask artcrm_MASK vDB after refresh') {
             steps {
-                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' masking_job_id='alcrm01_masking'"
+                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
+                masking_job_id='alcrm01_masking'"
             }
         }
-        stage('PAUSE: Check alcrm01 for updates') {
+
+// Pause to show artcrm_MASK is masked and has the updated data from Prod crm
+
+        stage('PAUSE: Check artcrm_MASK for updates') {
             steps {
-                input message: 'Proceed to delete alcrm01', ok: 'Yes, proceed'
+                input message: 'Proceed with Refreshing QA and DEV?', ok: 'Yes, proceed'
             }
         }
-        stage('Delete alcrm01') {
-            agent { label 'devops' }
-                steps {
-                    sh "/home/delphix/dct-toolkit delete_vdb vdb_id='alcrm01'"
-                    sh "exit 0"
-                }
+ 
+ // Refresh artcrm_QA and artcrm_DEV
+
+        stage('Refresh QA and DEV') {
+        parallel {
+        stage('Refresh artcrm_QA') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_QA'"
+            }
         }
+        stage('Refresh artcrm_DEV') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_DEV'"
+            }
+        }
+        }
+        }
+
+// Pause to show artcrm_MASK is masked and has the updated data from Prod crm
+
+        stage('PAUSE: Check artcrm_QA and artcrm_DEV for updates') {
+            steps {
+                input message: 'Proceed with Replicate to REMOTE?', ok: 'Yes, proceed'
+            }
+        }        
+
+// Replicate artcrm_QA and artcrm_DEV to CDE2
+        stage('Execute replication profile') {
+            steps {
+                sh """
+                /root/dct-toolkit execute_replication_profile replication_profile_id='ART DEMO CDE1 to CDE2' 
+                sleep 20
+                """
+            }
+        } 
+// Refresh artcrm_QA and artcrm_DEV 
+
+// Refresh artcrm_QA and artcrm_DEV
+
+        stage('Refresh Remote QA and DEV') {
+        parallel {
+        stage('Refresh artcrm_QA_remote') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_QA_remote'"
+            }
+        }
+        stage('Refresh artcrm_DEV_remote') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_DEV_remote'"
+            }
+        }
+        }
+        }
+
+// Pause to show QA and DEV vDB have the updated data
+//
+//        stage('Delete artcrm01') {
+//                steps {
+//                    sh "/home/delphix/dct-toolkit delete_vdb vdb_id='artcrm_MASK'"
+//                    sh "exit 0"
+//                }
+//        }
+
     }
 }
