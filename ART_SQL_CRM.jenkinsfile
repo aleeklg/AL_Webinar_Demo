@@ -100,7 +100,7 @@ pipeline {
         }
         stage('Refresh artcrm_DEV') {
             steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_DEV'"
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-653'"
             }
         }
         }
