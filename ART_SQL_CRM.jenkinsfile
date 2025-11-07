@@ -60,7 +60,7 @@ pipeline {
 
         stage('Snap Prod crm') {
             steps {
-                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='crm' engine_id='CDE1'"
+                sh "/home/delphix/dct-toolkit snapshot_dsource engine_id='CDE1' dsource_id='crm'"
             }
         }
 
