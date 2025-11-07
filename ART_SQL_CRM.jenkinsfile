@@ -183,9 +183,37 @@ pipeline {
                 sh "/home/delphix/dct-toolkit refresh_vdb_from_bookmark vdb_id='artcrm_DEV' bookmark_id='Error Bookmark'"
             }
         }
-      }
-    }
+        }
+        }
 
+// Pause to Delete Bookmarks
+
+        stage('PAUSE: Inspect ERROR in artcrm_QA') {
+            steps {
+                input message: 'Proceed to Delete Bookmarks?', ok: 'Yes, proceed'
+            }
+        }
+
+// Pause to Delete Bookmarks
+
+        stage('Delete Bookmarks') {
+        parallel {
+        stage('Delete Pretest BM') {
+            steps {
+                sh """
+                /home/delphix/dct-toolkit delete_bookmark bookmark_id='Pre-Test Bookmark' || true
+                """
+            }
+        }
+        stage('Delete Error BM') {
+            steps {
+                sh """
+                /home/delphix/dct-toolkit delete_bookmark bookmark_id='Error Bookmark' || true
+                """
+            }
+        }
+        }
+        }
 
     }
 }
