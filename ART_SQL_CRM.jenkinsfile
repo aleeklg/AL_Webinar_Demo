@@ -68,7 +68,7 @@ pipeline {
 
         stage('Refresh artcrm_MASK') {
             steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_MASK'"
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-652'"
             }
         }
 
