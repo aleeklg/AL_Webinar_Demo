@@ -124,6 +124,13 @@ pipeline {
         }
         }
 
+// Pause to inspect Remote QA and DEV
+
+        stage('PAUSE: Inspect artcrm_QA and artcrm_DEV') {
+            steps {
+                input message: 'Proceed to Testing Stage?', ok: 'Yes, proceed'
+            }
+        }
 
 // Bookmark AL_CRM_QA Pre-Test
 
@@ -148,7 +155,7 @@ pipeline {
     }
 }
 
-        stage('Bookmark Error and Make Public') {
+        stage('Bookmark Error') {
             steps {
                 sh "/home/delphix/dct-toolkit create_bookmark vdb_ids='artcrm_QA' name='Error Bookmark' bookmark_type=PUBLIC"
             }
@@ -156,7 +163,7 @@ pipeline {
 
 // Pause to Capture ERROR
 
-        stage('PAUSE: ERROR') {
+        stage('PAUSE: Inspect ERROR in artcrm_QA') {
             steps {
                 input message: 'Proceed with Rewind QA & Refresh DEV?', ok: 'Yes, proceed'
             }
