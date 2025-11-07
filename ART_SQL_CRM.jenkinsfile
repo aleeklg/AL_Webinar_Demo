@@ -118,7 +118,7 @@ pipeline {
         stage('Execute replication profile') {
             steps {
                 sh """
-                /root/dct-toolkit execute_replication_profile replication_profile_id='ART DEMO CDE1 to CDE2' 
+                /home/delphix/dct-toolkit execute_replication_profile replication_profile_id='ART DEMO CDE1 to CDE2' 
                 sleep 20
                 """
             }
