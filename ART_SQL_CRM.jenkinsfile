@@ -124,14 +124,61 @@ pipeline {
         }
         }
 
-// Pause to show QA and DEV vDB have the updated data
-//
-//        stage('Delete artcrm01') {
-//                steps {
-//                    sh "/home/delphix/dct-toolkit delete_vdb vdb_id='artcrm_MASK'"
-//                    sh "exit 0"
-//                }
-//        }
+
+// Bookmark AL_CRM_QA Pre-Test
+
+        stage('Bookmark Pre-Test') {
+            steps {
+                sh "/home/delphix/dct-toolkit create_bookmark vdb_ids='artcrm_QA' name='Pre-Test Bookmark'"
+            }
+        }
+
+// Start Testing and Destroy Data
+
+        stage('Start Testing') {
+            steps {
+                sh """
+                /opt/mssql-tools18/bin/sqlcmd \
+                    -S 10.160.1.62,1433 \
+                    -U sa \
+                    -P Delphix_123! \
+                    -d artcrm_QA} \
+                    -Q "UPDATE contacts SET last_name='LaGalle';"
+                """
+    }
+}
+
+        stage('Bookmark Error and Make Public') {
+            steps {
+                sh "/home/delphix/dct-toolkit create_bookmark vdb_ids='artcrm_QA' name='Error Bookmark' bookmark_type=PUBLIC"
+            }
+        }
+
+// Pause to Capture ERROR
+
+        stage('PAUSE: ERROR') {
+            steps {
+                input message: 'Proceed with Rewind QA & Refresh DEV?', ok: 'Yes, proceed'
+            }
+        }
+
+// Rewind QA to Pre-Test and Refresh DEV to Bookmark ERROR
+
+        stage('Rewind QA and Refresh DEV') {
+        parallel {
+        stage('Rewind artcrm_QA') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_from_bookmark vdb_id='artcrm_QA' bookmark_id='Pre-Test Bookmark'"
+            }
+        }
+        stage('Refresh artcrm_DEV') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_from_bookmark vdb_id='artcrm_DEV' bookmark_id='Error Bookmark'"
+            }
+        }
+      }
+    }
+
 
     }
 }
