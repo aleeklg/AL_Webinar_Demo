@@ -77,7 +77,7 @@ pipeline {
         stage('Mask artcrm_MASK vDB after refresh') {
             steps {
                 sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
-                masking_job_id='alcrm01_masking'"
+                masking_job_id='artcrm_MASK-masking'"
             }
         }
 
