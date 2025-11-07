@@ -138,11 +138,11 @@ pipeline {
         stage('Start Testing') {
             steps {
                 sh """
-                /opt/mssql-tools18/bin/sqlcmd \
-                    -S 10.160.1.62,1433 \
+                sqlcmd \
+                    -S 10.160.1.62 \
                     -U sa \
                     -P Delphix_123! \
-                    -d artcrm_QA} \
+                    -d artcrm_QA \
                     -Q "UPDATE contacts SET last_name='LaGalle';"
                 """
     }
