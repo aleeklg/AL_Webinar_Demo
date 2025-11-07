@@ -85,7 +85,7 @@ pipeline {
 
         stage('Snap artcrm_MASK') {
             steps {
-                sh "/home/delphix/dct-toolkit snapshot_vdb dsource_id='1-MSSQL_DB_CONTAINER-652'"
+                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-652'"
             }
         }
 
