@@ -9,36 +9,6 @@ pipeline {
     agent { label 'devops' }
     stages {
 
-// Provision artcrm01 vDB
-//
-//       stage('Provision artcrm01 vDB') {
-//            steps {
-//                sh "/home/delphix/dct-toolkit provision_vdb_by_snapshot \
-//                mssql engine_id='CDE1' source_data_id='crm' name='artcrm01' \
-//                database_name='artcrm01' environment_id='Sqlserver_Target' \
-//                environment_user_id='delphix_os' repository_id='MSSQLSERVER' \
-//                target_group_id='MaskGC'"
-//                sh "exit 0"
-//            }
-//        }
-//
-// Mask artcrm01 vDB
-//
-//        stage('Mask artcrm01 vDB') {
-//            steps {
-//                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
-//                masking_job_id='alcrm01_masking'"
-//            }
-//        }
-
-// Pause to inspect masked artcrm01 and to update Prod crm
-//
-//        stage('PAUSE: Proceed to Update Prod crm?') {
-//            steps {
-//                input message: 'Proceed with Snapshot?', ok: 'Yes, proceed'
-//            }
-//        }
-
 // PREREQUISTES:
 // -------------
 // artcrm_MASK vDB already provisioned and masked
@@ -188,7 +158,7 @@ pipeline {
 
 // Pause to Delete Bookmarks
 
-        stage('PAUSE: Inspect ERROR in artcrm_QA') {
+        stage('PAUSE: Inspect ERROR in artcrm_DEV') {
             steps {
                 input message: 'Proceed to Delete Bookmarks?', ok: 'Yes, proceed'
             }
