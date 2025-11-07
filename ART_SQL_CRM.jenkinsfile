@@ -93,36 +93,11 @@ pipeline {
 
         stage('PAUSE: Check artcrm_MASK for updates') {
             steps {
-                input message: 'Proceed with Refreshing QA and DEV?', ok: 'Yes, proceed'
+                input message: 'Proceed with Replicate', ok: 'Yes, proceed'
             }
-        }
- 
- // Refresh artcrm_QA and artcrm_DEV
+        }       
 
-        stage('Refresh QA and DEV') {
-        parallel {
-        stage('Refresh artcrm_QA') {
-            steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-654'"
-            }
-        }
-        stage('Refresh artcrm_DEV') {
-            steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-653'"
-            }
-        }
-        }
-        }
-
-// Pause to show artcrm_MASK is masked and has the updated data from Prod crm
-
-        stage('PAUSE: Check artcrm_QA and artcrm_DEV for updates') {
-            steps {
-                input message: 'Proceed with Replicate to REMOTE?', ok: 'Yes, proceed'
-            }
-        }        
-
-// Replicate artcrm_QA and artcrm_DEV to CDE2
+// Replicate artcrm_MASK to CDE2
         stage('Execute replication profile') {
             steps {
                 sh """
@@ -131,20 +106,19 @@ pipeline {
                 """
             }
         } 
-// Refresh artcrm_QA and artcrm_DEV 
 
 // Refresh artcrm_QA and artcrm_DEV
 
         stage('Refresh Remote QA and DEV') {
         parallel {
-        stage('Refresh artcrm_QA_remote') {
+        stage('Refresh artcrm_QA') {
             steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_QA_remote'"
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_QA'"
             }
         }
-        stage('Refresh artcrm_DEV_remote') {
+        stage('Refresh artcrm_DEV') {
             steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_DEV_remote'"
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_DEV'"
             }
         }
         }
