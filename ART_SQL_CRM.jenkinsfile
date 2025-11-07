@@ -95,7 +95,7 @@ pipeline {
         parallel {
         stage('Refresh artcrm_QA') {
             steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_QA'"
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-654'"
             }
         }
         stage('Refresh artcrm_DEV') {
