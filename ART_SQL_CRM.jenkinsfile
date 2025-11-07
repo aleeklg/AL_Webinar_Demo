@@ -60,7 +60,7 @@ pipeline {
 
         stage('Snap Prod crm') {
             steps {
-                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='3-MSSQL_DB_CONTAINER-173'"
+                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-MSSQL_DB_CONTAINER-638'"
             }
         }
 
