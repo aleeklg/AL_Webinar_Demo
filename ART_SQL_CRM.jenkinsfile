@@ -82,12 +82,12 @@ pipeline {
         }
 
 // Snapshot artcrm_MASK
-
-        stage('Snap artcrm_MASK') {
-            steps {
-                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-652'"
-            }
-        }
+//
+//        stage('Snap artcrm_MASK') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-652'"
+//            }
+//        }
 
 // Pause to show artcrm_MASK is masked and has the updated data from Prod crm
 
