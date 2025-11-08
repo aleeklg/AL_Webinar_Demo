@@ -52,7 +52,7 @@ pipeline {
 
 // Refresh the ALL masked vDB
 
-        stage('Snap all Sources') {
+        stage('Refresh all Sources') {
         parallel {
         stage('Refresh artcrm_MASK') {
             steps {
@@ -75,7 +75,7 @@ pipeline {
 
 // Mask the ALL art*_MASK vDB after refresh
 
-        stage('Snap all Sources') {
+        stage('Re-Mask all MASK vDB') {
         parallel {
         stage('Mask artcrm_MASK vDB after refresh') {
             steps {
