@@ -52,7 +52,7 @@ pipeline {
 
 // Refresh the ALL masked vDB
 
-        stage('Refresh all Sources') {
+        stage('Refresh all masked vDB') {
         parallel {
         stage('Refresh artcrm_MASK') {
             steps {
