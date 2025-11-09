@@ -52,7 +52,7 @@ pipeline {
 
 // Refresh the ALL masked vDB
 
-        stage('Refresh masked vDB') {
+        stage('Refresh vDB') {
         parallel {
         stage('Refresh artcrm_MASK') {
             steps {
@@ -75,7 +75,7 @@ pipeline {
 
 // Mask the ALL art*_MASK vDB after refresh
 
-        stage('Re-mask masked vDB') {
+        stage('Re-mask vDB') {
         parallel {
         stage('Mask artcrm_MASK vDB after refresh') {
             steps {
@@ -100,7 +100,7 @@ pipeline {
 
 // Snapshot ALL masked vDB after masking
 
-        stage('Snap masked vDB') {
+        stage('Snap vDB') {
         parallel {
         stage('Snap artcrm_MASK') {
             steps {
@@ -140,7 +140,7 @@ pipeline {
 
 // Refresh ALL vDB in CDE2 after replication
 
-        stage('Refresh Remote QA and DEV') {
+        stage('Refresh Remote vDB') {
         parallel {
         stage('Refresh artcrm_QA') {
             steps {
