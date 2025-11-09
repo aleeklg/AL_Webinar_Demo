@@ -30,7 +30,7 @@ pipeline {
 // ------------------
 // take a snapshot of ALL "changed" Sources crm, erp and FS
 
-        stage('Snap all Sources') {
+        stage('Snap Sources') {
         parallel {
         stage('Snap Prod crm') {
             steps {
@@ -52,7 +52,7 @@ pipeline {
 
 // Refresh the ALL masked vDB
 
-        stage('Refresh all masked vDB') {
+        stage('Refresh masked vDB') {
         parallel {
         stage('Refresh artcrm_MASK') {
             steps {
@@ -75,7 +75,7 @@ pipeline {
 
 // Mask the ALL art*_MASK vDB after refresh
 
-        stage('Re-Mask all MASK vDB') {
+        stage('Re-mask masked vDB') {
         parallel {
         stage('Mask artcrm_MASK vDB after refresh') {
             steps {
@@ -100,7 +100,7 @@ pipeline {
 
 // Snapshot ALL masked vDB after masking
 
-        stage('Snap all Masked vDB') {
+        stage('Snap masked vDB') {
         parallel {
         stage('Snap artcrm_MASK') {
             steps {
@@ -122,7 +122,7 @@ pipeline {
 
 // Pause to show artcrm_MASK is masked and has the updated data from Prod crm
 
-        stage('PAUSE: Check artcrm_MASK for updates') {
+        stage('PAUSE: Check art*_MASK for updates') {
             steps {
                 input message: 'Proceed with Replicate', ok: 'Yes, proceed'
             }
@@ -133,7 +133,7 @@ pipeline {
             steps {
                 sh """
                 /home/delphix/dct-toolkit execute_replication_profile replication_profile_id='ART DEMO CDE1 to CDE2' 
-                sleep 20
+                sleep 40
                 """
             }
         } 
@@ -150,6 +150,16 @@ pipeline {
         stage('Refresh artcrm_DEV') {
             steps {
                 sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_DEV'"
+            }
+        }
+        stage('Refresh arterp_QA') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='arterp_QA'"
+            }
+        }
+        stage('Refresh arterp_DEV') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='arterp_DEV'"
             }
         }
         stage('Refresh artfs_REMOTE') {
