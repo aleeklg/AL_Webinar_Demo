@@ -37,11 +37,11 @@ pipeline {
                 sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-MSSQL_DB_CONTAINER-638'"
             }
         }
-//        stage('Snap Prod erp') {
-//           steps {
-//                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='????'"
-//            }
-//        }
+        stage('Snap Prod erp') {
+           steps {
+                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-MSSQL_DB_CONTAINER-663'"
+            }
+        }
         stage('Snap SRC Files') {
             steps {
                 sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-APPDATA_CONTAINER-641'"
@@ -59,11 +59,11 @@ pipeline {
                 sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-652'"
             }
         }
-//        stage('Refresh arterp_MASK') {
-//            steps {
-//                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='???'"
-//            }
-//        }
+        stage('Refresh arterp_MASK') {
+            steps {
+                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-665'"
+            }
+        }
         stage('Refresh artfs_MASK') {
             steps {
                 sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-APPDATA_CONTAINER-662'"
@@ -83,12 +83,12 @@ pipeline {
                 masking_job_id='artcrm_MASK-masking'"
             }
         }
-//        stage('Mask arterp_MASK vDB after refresh') {
-//            steps {
-//                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
-//                masking_job_id='???'"
-//            }
-//        }
+        stage('Mask arterp_MASK vDB after refresh') {
+            steps {
+                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
+                masking_job_id='arterp_MASK-masking'"
+            }
+        }
         stage('Mask artfs_MASK vDB after refresh') {
             steps {
                 sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
@@ -107,11 +107,11 @@ pipeline {
                 sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-652'"
             }
         }
-//        stage('Snap arterp_MASK') {
-//            steps {
-//                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='??'"
-//            }
-//        }
+        stage('Snap arterp_MASK') {
+            steps {
+                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-665'"
+            }
+        }
         stage('Snap artfs_MASK') {
             steps {
                 sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-APPDATA_CONTAINER-662'"
