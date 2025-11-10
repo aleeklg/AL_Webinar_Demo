@@ -92,7 +92,7 @@ pipeline {
         stage('Mask artfs_MASK vDB after refresh') {
             steps {
                 sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
-                masking_job_id='artfs_MASK-masking'"
+                masking_job_id='FW_Target-masking_inplace'"
             }
         }
         }
@@ -122,7 +122,7 @@ pipeline {
 
 // Pause to show artcrm_MASK is masked and has the updated data from Prod crm
 
-        stage('PAUSE: Check art*_MASK for updates') {
+        stage('PAUSE: Check vDB for updates') {
             steps {
                 input message: 'Proceed with Replicate', ok: 'Yes, proceed'
             }
@@ -172,7 +172,7 @@ pipeline {
 
 // Pause to inspect Remote QA and DEV
 
-        stage('PAUSE: Inspect artcrm_QA, artcrm_DEV and artfs_REMOTE') {
+        stage('PAUSE: Inspect remote vDB') {
             steps {
                 input message: 'Proceed to Testing Stage?', ok: 'Yes, proceed'
             }
