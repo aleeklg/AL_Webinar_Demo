@@ -32,16 +32,16 @@ pipeline {
 
         stage('Snap Sources') {
         parallel {
-        stage('Snap Prod crm') {
-            steps {
-                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-MSSQL_DB_CONTAINER-638'"
-            }
-        }
-        stage('Snap Prod erp') {
-           steps {
-                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-MSSQL_DB_CONTAINER-663'"
-            }
-        }
+//        stage('Snap Prod crm') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-MSSQL_DB_CONTAINER-638'"
+//            }
+//        }
+//        stage('Snap Prod erp') {
+//           steps {
+//                sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-MSSQL_DB_CONTAINER-663'"
+//            }
+//        }
         stage('Snap SRC Files') {
             steps {
                 sh "/home/delphix/dct-toolkit snapshot_dsource dsource_id='1-APPDATA_CONTAINER-641'"
@@ -54,16 +54,16 @@ pipeline {
 
         stage('Refresh vDB') {
         parallel {
-        stage('Refresh artcrm_MASK') {
-            steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-667'"
-            }
-        }
-        stage('Refresh arterp_MASK') {
-            steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-668'"
-            }
-        }
+//        stage('Refresh artcrm_MASK') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-667'"
+//            }
+//        }
+//        stage('Refresh arterp_MASK') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-MSSQL_DB_CONTAINER-668'"
+//            }
+//        }
         stage('Refresh artfs_MASK') {
             steps {
                 sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='1-APPDATA_CONTAINER-669'"
@@ -77,18 +77,18 @@ pipeline {
 
         stage('Re-mask vDB') {
         parallel {
-        stage('Mask artcrm_MASK vDB after refresh') {
-            steps {
-                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
-                masking_job_id='artcrm_MASK-masking'"
-            }
-        }
-        stage('Mask arterp_MASK vDB after refresh') {
-            steps {
-                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
-                masking_job_id='arterp_MASK-masking'"
-            }
-        }
+//        stage('Mask artcrm_MASK vDB after refresh') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
+//                masking_job_id='artcrm_MASK-masking'"
+//            }
+//        }
+//        stage('Mask arterp_MASK vDB after refresh') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
+//                masking_job_id='arterp_MASK-masking'"
+//            }
+//        }
         stage('Mask artfs_MASK vDB after refresh') {
             steps {
                 sh "/home/delphix/dct-toolkit execute_masking_job engine_id='CCE1' \
@@ -102,16 +102,16 @@ pipeline {
 
         stage('Snap vDB') {
         parallel {
-        stage('Snap artcrm_MASK') {
-            steps {
-                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-667'"
-            }
-        }
-        stage('Snap arterp_MASK') {
-            steps {
-                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-668'"
-            }
-        }
+//        stage('Snap artcrm_MASK') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-667'"
+//            }
+//        }
+//        stage('Snap arterp_MASK') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-MSSQL_DB_CONTAINER-668'"
+//            }
+//        }
         stage('Snap artfs_MASK') {
             steps {
                 sh "/home/delphix/dct-toolkit snapshot_vdb vdb_id='1-APPDATA_CONTAINER-669'"
@@ -142,26 +142,26 @@ pipeline {
 
         stage('Refresh Remote vDB') {
         parallel {
-        stage('Refresh artcrm_QA') {
-            steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_QA'"
-            }
-        }
-        stage('Refresh artcrm_DEV') {
-            steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_DEV'"
-            }
-        }
-        stage('Refresh arterp_QA') {
-            steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='arterp_QA'"
-            }
-        }
-        stage('Refresh arterp_DEV') {
-            steps {
-                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='arterp_DEV'"
-            }
-        }
+//        stage('Refresh artcrm_QA') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_QA'"
+//            }
+//        }
+//        stage('Refresh artcrm_DEV') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artcrm_DEV'"
+//            }
+//        }
+//        stage('Refresh arterp_QA') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='arterp_QA'"
+//            }
+//        }
+//        stage('Refresh arterp_DEV') {
+//            steps {
+//                sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='arterp_DEV'"
+//            }
+//        }
         stage('Refresh artfs_REMOTE') {
             steps {
                 sh "/home/delphix/dct-toolkit refresh_vdb_by_snapshot vdb_id='artfs_REMOTE'"
