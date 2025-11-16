@@ -16,38 +16,38 @@
 //
 
 def pipelineParams = [
-dctToolKit          : '/root/dct-toolkit',
-cceEngineId         : 'cce',
-stagingEnvId        : 'Postgres Staging',
-sourceCRM           : 'Postgres_crm',
-sourceERP           : 'Postgres_erp',
+dctToolKit          : '/root/dct-toolkit',      //path to dct-toolkit in Jenkins host
+cceEngineId         : 'cce',                    //name ir ID of CCE engine as stated in DCT
+stagingEnvId        : 'Postgres Staging',       //name or ID of Staging Environment usually same as Target Environment
+sourceCRM           : 'Postgres_crm',           //name or ID of Source 
+sourceERP           : 'Postgres_erp',           //name or ID of
 
-mountBasePath       : '/mnt/provision',
+mountBasePath       : '/mnt/provision',         //name or ID of mount path used during provisioning
 
-crmMaskingJob       : 'ALPOST1 Masking',
-erpMaskingJob       : 'ERP - Mask GC - Mask',
+crmMaskingJob       : 'ALPOST1 Masking',        //name or ID of masking job for CRM
+erpMaskingJob       : 'ERP - Mask GC - Mask',   //name or ID of masking job for ERP
 
-crmMaskVdbName      : 'AL_CRM_MASK',
-crmMaskPort         : '8015',
-crmQaVdbName        : 'AL_CRM_QA',
-crmQaPort           : '8016',
-crmDevVdbName       : 'AL_CRM_DEV',
-crmDevPort          : '8017',
-erpMaskVdbName      : 'AL_ERP_MASK',
-erpMaskPort         : '8025',
-erpQaVdbName        : 'AL_ERP_QA',
-erpQaPort           : '8026',
-erpDevVdbName       : 'AL_ERP_DEV',
-erpDevPort          : '8027',
+crmMaskVdbName      : 'AL_CRM_MASK',            //name or ID of vDB for CRM Mask
+crmMaskPort         : '8015',                   //port numberof vDB for CRM Mask
+crmQaVdbName        : 'AL_CRM_QA',              //name or ID of vDB for CRM QA
+crmQaPort           : '8016',                   //port numberof vDB for CRM QA
+crmDevVdbName       : 'AL_CRM_DEV',             //name or ID of vDB for CRM DEV  
+crmDevPort          : '8017',                   //port numberof vDB for CRM DEV  
+erpMaskVdbName      : 'AL_ERP_MASK',            //name or ID of vDB for ERP Mask
+erpMaskPort         : '8025',                   //port numberof vDB for CRM Mask
+erpQaVdbName        : 'AL_ERP_QA',              //name or ID of vDB for ERP QA
+erpQaPort           : '8026',                   //port numberof vDB for CRM QA
+erpDevVdbName       : 'AL_ERP_DEV',             //name or ID of vDB for ERP DEV
+erpDevPort          : '8027',                   //port numberof vDB for CRM DEV
 
-maskGroupId         : 'MaskGC',
-qaGroupId           : 'QA',
-devGroupId          : 'DEV',
+maskGroupId         : 'MaskGC',                 //name or ID of Mask Group in CDE
+qaGroupId           : 'QA',                     //name or ID of QA Group in CDE
+devGroupId          : 'DEV',                    //name or ID of DEV Group in CDE
 
-postgresHost        : '10.160.1.74',
-dbNameQa            : 'crm',
-postgresUser        : 'postgres',
-postgresPassword    : 'Delphix_123!'
+postgresHost        : '10.160.1.74',            //postgres host: parameter required for psql login to execute "test"
+dbNameQa            : 'crm',                    //postgres db: parameter required for psql login to execute "test"
+postgresUser        : 'postgres',               //Postgres user: parameter required for psql login to execute "test"
+postgresPassword    : 'Delphix_123!'            //User Password: parameter required for psql login to execute "test"
 ]
 
 
