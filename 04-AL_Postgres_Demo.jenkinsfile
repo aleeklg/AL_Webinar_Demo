@@ -58,7 +58,7 @@ pipeline {
 
 // Provision vDB AL_CRM_MASK and AL_ERP_MASK to MaskGC
 
-    stage('Provision vDBs from CRM and ERP') {
+    stage('Provision vDBs for CRM and ERP') {
       parallel {
         stage('Provision crmMask vDB') {
           steps {
