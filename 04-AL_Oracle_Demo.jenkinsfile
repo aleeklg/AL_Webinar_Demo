@@ -1,6 +1,6 @@
 // Version 04 - parameterized for easy portability
 //
-// Jenkins Pipeline for Postgres using DCT to
+// Jenkins Pipeline for Oracle using DCT to
 //   Provision AL_CRM_MASK and AL_ERP_MASK to MaskGC
 //   Mask AL_CRM_MASK and AL_ERP_MASK
 //   Provision masked vDB to QA and DEV
@@ -17,37 +17,37 @@
 
 def pipelineParams = [
 dctToolKit          : '/root/dct-toolkit',      //path to dct-toolkit in Jenkins host
-cceEngineId         : 'CCE1',                    //name ir ID of CCE engine as stated in DCT
-stagingEnvId        : 'Postgres Staging',       //name or ID of Staging Environment usually same as Target Environment
-sourceCRM           : 'Postgres_crm',           //name or ID of dSource 
-sourceERP           : 'Postgres_erp',           //name or ID of dSource
+cceEngineId         : 'cce',                    //name ir ID of CCE engine as stated in DCT
+stagingEnvId        : 'ORACLE TARGET',          //name or ID of Staging Environment usually same as Target Environment
+sourceCRM           : 'CRMPDB',                 //name or ID of dSource 
+sourceERP           : 'ERPPDB',                 //name or ID of dSource
 
 mountBasePath       : '/mnt/provision',         //name or ID of mount path used during provisioning
 
-crmMaskingJob       : 'ALPOST1 Masking',        //name or ID of masking job for CRM
-erpMaskingJob       : 'ERP - Mask GC - Mask',   //name or ID of masking job for ERP
+crmMaskingJob       : 'ORACRM Masking',         //name or ID of masking job for CRM
+erpMaskingJob       : 'ORA ERP Masking',        //name or ID of masking job for ERP
 
-crmMaskVdbName      : 'AL_CRM_MASK',            //name or ID of vDB for CRM Mask
-crmMaskPort         : '8015',                   //port numberof vDB for CRM Mask
-crmQaVdbName        : 'AL_CRM_QA',              //name or ID of vDB for CRM QA
-crmQaPort           : '8016',                   //port numberof vDB for CRM QA
-crmDevVdbName       : 'AL_CRM_DEV',             //name or ID of vDB for CRM DEV  
-crmDevPort          : '8017',                   //port numberof vDB for CRM DEV  
-erpMaskVdbName      : 'AL_ERP_MASK',            //name or ID of vDB for ERP Mask
-erpMaskPort         : '8025',                   //port numberof vDB for ERP Mask
-erpQaVdbName        : 'AL_ERP_QA',              //name or ID of vDB for ERP QA
-erpQaPort           : '8026',                   //port numberof vDB for ERP QA
-erpDevVdbName       : 'AL_ERP_DEV',             //name or ID of vDB for ERP DEV
-erpDevPort          : '8027',                   //port numberof vDB for ERP DEV
+crmMaskVdbName      : 'VCRMPDB',            //name or ID of vDB for CRM Mask
+crmMaskPort         : '1521',                   //port numberof vDB for CRM Mask
+crmQaVdbName        : 'VCRMQA',              //name or ID of vDB for CRM QA
+crmQaPort           : '1521',                   //port numberof vDB for CRM QA
+crmDevVdbName       : 'VCRMDEV',             //name or ID of vDB for CRM DEV  
+crmDevPort          : '1521',                   //port numberof vDB for CRM DEV  
+erpMaskVdbName      : 'VERPPDB',            //name or ID of vDB for ERP Mask
+erpMaskPort         : '1521',                   //port numberof vDB for ERP Mask
+erpQaVdbName        : 'VERPQA',              //name or ID of vDB for ERP QA
+erpQaPort           : '1521',                   //port numberof vDB for ERP QA
+erpDevVdbName       : 'vERPDEV',             //name or ID of vDB for ERP DEV
+erpDevPort          : '1521',                   //port numberof vDB for ERP DEV
 
 maskGroupId         : 'MaskGC',                 //name or ID of Mask Group in CDE
 qaGroupId           : 'QA',                     //name or ID of QA Group in CDE
 devGroupId          : 'DEV',                    //name or ID of DEV Group in CDE
 
-postgresHost        : '10.160.1.74',            //postgres host: parameter required for psql login to execute "test"
-dbNameQa            : 'crm',                    //postgres db: parameter required for psql login to execute "test"
-postgresUser        : 'postgres',               //postgres user: parameter required for psql login to execute "test"
-postgresPassword    : 'Delphix_123!'            //postgres user pw: parameter required for psql login to execute "test"
+// postgresHost        : '10.160.1.74',            //postgres host: parameter required for psql login to execute "test"
+// dbNameQa            : 'crm',                    //postgres db: parameter required for psql login to execute "test"
+// postgresUser        : 'postgres',               //postgres user: parameter required for psql login to execute "test"
+// postgresPassword    : 'Delphix_123!'            //postgres user pw: parameter required for psql login to execute "test"
 ]
 
 
