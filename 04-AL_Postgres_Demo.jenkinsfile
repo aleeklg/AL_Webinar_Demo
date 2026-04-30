@@ -17,7 +17,7 @@
 
 def pipelineParams = [
 dctToolKit          : '/root/dct-toolkit',      //path to dct-toolkit in Jenkins host
-cceEngineId         : 'CCE1',                    //name ir ID of CCE engine as stated in DCT
+cceEngineId         : 'cce',                    //name ir ID of CCE engine as stated in DCT
 stagingEnvId        : 'Postgres Staging',       //name or ID of Staging Environment usually same as Target Environment
 sourceCRM           : 'Postgres_crm',           //name or ID of dSource 
 sourceERP           : 'Postgres_erp',           //name or ID of dSource
